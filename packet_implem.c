@@ -53,9 +53,8 @@ pkt_t* pkt_new() {
     new_pkt->type = 0;
     new_pkt->tr = 0;
     new_pkt->window = 0;
-    new_pkt->l = 0;
     new_pkt->seqnum = 0;
-    new_pkt->length = NULL;
+    new_pkt->length = 0;
     new_pkt->timestamp = 0;
     new_pkt->crc1 = 0;
     new_pkt->payload = NULL;
@@ -70,7 +69,6 @@ void pkt_del(pkt_t *pkt) {
 
   if(pkt_get_length(pkt) != 0 && pkt->payload != NULL){
     free(pkt->payload);
-    free(pkt->length);
   }
   free(pkt);
 }
@@ -250,8 +248,8 @@ uint8_t  pkt_get_seqnum(const pkt_t* pkt)
 }
 
 uint16_t pkt_get_length(const pkt_t* pkt) {
-  if (pkt->length == NULL) return 0;
-  return ntohs(*pkt->length);
+  if (pkt->length == 0) return 0;
+  return pkt->length;
 }
 
 uint32_t pkt_get_timestamp   (const pkt_t* pkt) {
@@ -369,31 +367,77 @@ pkt_status_code pkt_set_payload(pkt_t *pkt,
 }
 
 
-ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval)
-{
-    /* Your code will be inserted here */
+ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) {
+
+    uint8_t data2;
+    data2 = data << 1;
+    if (len == 1) {
+
+      retval = data2;
+
+    } else if (len == 2) {
+
+      retval = ntohs(data2);
+
+    } else {
+      return -1;
+    }
 }
 
 
-ssize_t varuint_encode(uint16_t val, uint8_t *data, const size_t len)
-{
-    /* Your code will be inserted here */
+ssize_t varuint_encode(uint16_t val, uint8_t *data, const size_t len) {
+    if (varuint_predict_len(val)==len) {
+
+      if (len == 1) {
+
+        memcpy(data,val, 1);
+        data[0] = 0;  
+        
+      } else if (len == 2) {
+
+        memcpy(data,val, 2);
+        data = htons(data);
+        data[0] = 1;
+
+      }
+
+    } else {
+      return -1;
+    }
 }
 
 size_t varuint_len(const uint8_t *data) {
-    return sizeof(data);
+    uint8_t l = data[0];
+    if (l == 0){
+      return 1;
+    }
+    return 2;
 }
 
 
 ssize_t varuint_predict_len(uint16_t val)
 {
-    /* Your code will be inserted here */
+    if (val < 128){
+      return 1;
+    } else if (val < 32768){
+      return 2;
+    } 
+
+    return -1;
 }
 
 
-ssize_t predict_header_length(const pkt_t *pkt)
-{
-    /* Your code will be inserted here */
+ssize_t predict_header_length(const pkt_t *pkt){
+    if (pkt == NULL ) {
+      return -1;
+    }
+
+    uint16_t lengthActu = pkt_get_length(pkt);
+    if (lengthActu < 32768) {
+      return varuint_predict_len(lengthActu) + 10;
+    } else {
+      return -1;
+    }
 }
 
 int main() {
