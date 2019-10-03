@@ -33,9 +33,9 @@
 /* Your code will be inserted here */
 
 struct __attribute__((__packed__)) pkt {
-  uint8_t type : 2; // 2bits
-  uint8_t tr : 1; //1bit
   uint8_t window : 5; // 5bits
+  uint8_t tr : 1; //1bit
+  uint8_t type : 2; // 2bits
   uint16_t length; // 16bits nbo
   uint8_t seqnum; // 8bits
   uint32_t timestamp; // 32 bits
@@ -81,27 +81,29 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   //set type, tr et window
   memcpy(pkt,data,sizeof(uint8_t));
 
-  //Check si le type copier est bon
-  if(pkt->type != PTYPE_DATA && pkt->type != PTYPE_ACK && pkt->type != PTYPE_NACK){
+  //Check si le type copié est bon
+  if(pkt->type != PTYPE_DATA && pkt->type != PTYPE_ACK && pkt->type != PTYPE_NACK) {
     return E_TYPE;
   }
   //Check si le tr est cohérent
-  if(pkt->type != PTYPE_DATA && pkt->tr != 0){
+  if(pkt->type != PTYPE_DATA && pkt->tr != 0) {
     return E_TR;
   }
-  //set seqnum
-  memcpy(&(pkt->seqnum),data+1,sizeof(uint8_t));
-
+  size_t lengthOfLength = varuint_len((uint8_t*) data+1);
   //set length
-  memcpy(&(pkt->length),data+2,sizeof(uint16_t));
-  if(pkt_get_length(pkt) > MAX_PAYLOAD_SIZE){
+  varuint_decode((uint8_t*) data+1,lengthOfLength,&(pkt->length));
+  //memcpy(&(pkt->length),*(data+1), lengthOfLength);
+  if(pkt_get_length(pkt) > MAX_PAYLOAD_SIZE) {
     return E_LENGTH;
   }
+  //set seqnum
+  memcpy(&(pkt->seqnum),data+1+lengthOfLength,sizeof(uint8_t));
+
     //set timestamp
-  memcpy(&(pkt->timestamp),data+4,sizeof(uint32_t));
+  memcpy(&(pkt->timestamp),data+2+lengthOfLength,sizeof(uint32_t));
 
   //check if crc1 is coherent & set crc1
-  memcpy(&(pkt->crc1),data+8, sizeof(uint32_t));
+  memcpy(&(pkt->crc1),data+6+lengthOfLength, sizeof(uint32_t));
   pkt->crc1 = ntohl(pkt->crc1);
 
   uint32_t crc1 = crc32(0L,Z_NULL,0);
@@ -130,7 +132,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   }
 
   if(pkt_get_tr(pkt) == 0 && pkt_get_length(pkt) != 0) { //check shorten package
-    pkt_set_payload(pkt,data+12, pkt_get_length(pkt));
+    pkt_set_payload(pkt,data+10+lengthOfLength, pkt_get_length(pkt));
         //if(st == E_LENGTH || st == E_NOMEM || st == E_LENGTH) {
           //  return st;
         //}
@@ -140,9 +142,9 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
     unsigned char *buf_crc2 = (unsigned char *) malloc(size);
     if(buf_crc2 == NULL)
       return E_NOMEM;
-    memcpy(buf_crc2,data+12,size);
+    memcpy(buf_crc2,data+10+lengthOfLength,size);
     crc2_calc = crc32(crc2_calc,buf_crc2,size);
-    memcpy(&(pkt->crc2),data+12+size,4);
+    memcpy(&(pkt->crc2),data+10+size+lengthOfLength,4);
     pkt->crc2 = ntohl(pkt->crc2);
     if(crc2_calc != pkt->crc2)
       return E_CRC;
@@ -155,8 +157,21 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
   //copy type, tr & window
   memcpy(buf,pkt,sizeof(uint8_t));
 
+  //change to nbo and copy length
+
+  ssize_t lengthOfLength = varuint_predict_len(pkt_get_length(pkt));
+  ssize_t headerLength = predict_header_length(pkt);
+
+  if(lengthOfLength == -1)
+    return E_LENGTH;
+  uint8_t *finalLength = (uint8_t*) malloc(lengthOfLength);
+  if(finalLength == NULL)
+    return E_NOMEM;
+  varuint_encode(pkt_get_length(pkt), finalLength, lengthOfLength);
+  memcpy(buf+1,&finalLength,sizeof(lengthOfLength));
+
   //copy seqnum
-  memcpy(buf+1,&(pkt->seqnum),sizeof(uint8_t));
+  memcpy(buf+1+lengthOfLength,&(pkt->seqnum),sizeof(uint8_t));
 
   //check if package got a payload
   if(pkt_get_tr(pkt) != 0){
@@ -169,27 +184,20 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
     return E_LENGTH;
   }
 
-  //change to nbo and copy length
-  //uint16_t *taille_ptr = (uint16_t *) malloc(sizeof(uint16_t));
-    //if(taille_ptr == NULL) {return E_NOMEM;}
-  uint16_t taille_ptr = htons(pkt_get_length(pkt));
-  memcpy(buf+2,&taille_ptr,sizeof(uint16_t));
-  //free(taille_ptr);
-
   //copy timestamp
-  memcpy(buf+4,&(pkt->timestamp),sizeof(uint32_t));
+  memcpy(buf+2+lengthOfLength,&(pkt->timestamp),sizeof(uint32_t));
 
   //copy crc1
   uint32_t crc1 = crc32(0L, Z_NULL, 0);
-  unsigned char *buf1=(unsigned char*) malloc(8);
+  unsigned char *buf1 = (unsigned char*) malloc(headerLength);
   if(buf1 == NULL){
     return E_NOMEM;
   }
   memcpy(buf1,buf,8);
 
   crc1 = crc32(crc1,buf1,8);
-  uint32_t bufferCRC1=htonl(crc1);
-  memcpy(buf+8,&bufferCRC1,sizeof(uint32_t));
+  uint32_t bufferCRC1 = htonl(crc1);
+  memcpy(buf+6+lengthOfLength, &bufferCRC1, sizeof(uint32_t));
   free(buf1);
 
   //check if package got a payload
@@ -198,30 +206,29 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
     return PKT_OK;
   }
   //check if buf is big enough
-  if(*len < (size_t)pkt_get_length(pkt)+12){
+  if(*len < (size_t) pkt_get_length(pkt)+12) {
     return E_NOMEM;
   }
   //copy payload
-  memcpy(buf+12,pkt->payload,pkt_get_length(pkt));
+  memcpy(buf+10+lengthOfLength,pkt->payload,pkt_get_length(pkt));
 
   // compute crc2, set payload, set crc2
-  if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0)
-  {
+  if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0) {
 
-    unsigned char *buf2=(unsigned char *) malloc(pkt_get_length(pkt));
-    if(buf2==NULL){
+    unsigned char *buf2 = (unsigned char *) malloc(pkt_get_length(pkt));
+    if(buf2==NULL) {
       return E_NOMEM;
     }
-    uint32_t crc2=crc32(0L, Z_NULL, 0);
+    uint32_t crc2 = crc32(0L, Z_NULL, 0);
 
     memcpy(buf2,pkt->payload,pkt_get_length(pkt));
 
     crc2 = crc32(crc2,buf2,pkt_get_length(pkt));
     crc2 = htonl(crc2);
-    memcpy(buf+12+pkt_get_length(pkt),&crc2,sizeof(uint32_t));
+    memcpy(buf+10+lengthOfLength+pkt_get_length(pkt), &crc2, sizeof(uint32_t));
     free(buf2);
     //update len
-    *len=16+pkt_get_length(pkt);
+    *len = 14 + lengthOfLength + pkt_get_length(pkt);
   }
   return PKT_OK;
 }
@@ -248,29 +255,25 @@ uint8_t  pkt_get_seqnum(const pkt_t* pkt)
 }
 
 uint16_t pkt_get_length(const pkt_t* pkt) {
-  if (pkt->length == 0) return 0;
   return pkt->length;
 }
 
-uint32_t pkt_get_timestamp   (const pkt_t* pkt) {
+uint32_t pkt_get_timestamp(const pkt_t* pkt) {
     return pkt->timestamp;
 }
 
-uint32_t pkt_get_crc1   (const pkt_t* pkt)
-{
+uint32_t pkt_get_crc1(const pkt_t* pkt) {
     return pkt->crc1;
 }
 
-uint32_t pkt_get_crc2   (const pkt_t* pkt)
-{
+uint32_t pkt_get_crc2(const pkt_t* pkt) {
   if(pkt_get_payload(pkt) == NULL || pkt_get_tr(pkt) != 0){
     return 0;
   }
   return pkt->crc2;
 }
 
-const char* pkt_get_payload(const pkt_t* pkt)
-{
+const char* pkt_get_payload(const pkt_t* pkt) {
   if(pkt_get_tr(pkt) != 0){
     return NULL;
   }
@@ -287,8 +290,7 @@ pkt_status_code pkt_set_type(pkt_t *pkt, const ptypes_t type) {
   return PKT_OK;
 }
 
-pkt_status_code pkt_set_tr(pkt_t *pkt, const uint8_t tr)
-{
+pkt_status_code pkt_set_tr(pkt_t *pkt, const uint8_t tr) {
   if(pkt_get_type(pkt) != PTYPE_DATA && tr != 0){
     return E_TR;
   }
@@ -296,8 +298,7 @@ pkt_status_code pkt_set_tr(pkt_t *pkt, const uint8_t tr)
   return PKT_OK;
 }
 
-pkt_status_code pkt_set_window(pkt_t *pkt, const uint8_t window)
-{
+pkt_status_code pkt_set_window(pkt_t *pkt, const uint8_t window) {
   if(window > MAX_WINDOW_SIZE){
     return E_WINDOW;
   }
@@ -305,39 +306,30 @@ pkt_status_code pkt_set_window(pkt_t *pkt, const uint8_t window)
   return PKT_OK;
 }
 
-pkt_status_code pkt_set_seqnum(pkt_t *pkt, const uint8_t seqnum)
-{
+pkt_status_code pkt_set_seqnum(pkt_t *pkt, const uint8_t seqnum) {
   pkt->seqnum = seqnum;
   return PKT_OK;
 }
 
-pkt_status_code pkt_set_length(pkt_t *pkt, const uint16_t length)
-{
+pkt_status_code pkt_set_length(pkt_t *pkt, const uint16_t length) {
   if(length > MAX_PAYLOAD_SIZE){
     return E_LENGTH;
   }
-  if(pkt->length != NULL)
-    free(pkt->length);
-  //TODO
-  pkt->length = (uint16_t) malloc(sizeof(uint16_t) - 1);
-  pkt->length=htons(length);
+  pkt->length = length;
   return PKT_OK;
 }
 
-pkt_status_code pkt_set_timestamp(pkt_t *pkt, const uint32_t timestamp)
-{
+pkt_status_code pkt_set_timestamp(pkt_t *pkt, const uint32_t timestamp) {
   pkt->timestamp=timestamp;
   return PKT_OK;
 }
 
-pkt_status_code pkt_set_crc1(pkt_t *pkt, const uint32_t crc1)
-{
+pkt_status_code pkt_set_crc1(pkt_t *pkt, const uint32_t crc1) {
   pkt->crc1=crc1;
   return PKT_OK;
 }
 
-pkt_status_code pkt_set_crc2(pkt_t *pkt, const uint32_t crc2)
-{
+pkt_status_code pkt_set_crc2(pkt_t *pkt, const uint32_t crc2) {
   if(pkt_get_tr(pkt) != 0 || pkt_get_payload(pkt) == NULL) {
     return E_CRC;
   }
@@ -368,17 +360,17 @@ pkt_status_code pkt_set_payload(pkt_t *pkt,
 
 
 ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) {
-
-    uint8_t data2;
-    data2 = data << 1;
+    uint16_t data2;
     if (len == 1) {
+      data2 = *data & 0x7F;
+      *retval = data2;
 
-      retval = data2;
-
+      return 1;
     } else if (len == 2) {
+      data2 = *data | 0x8000;
+      *retval = ntohs(data2);
 
-      retval = ntohs(data2);
-
+      return 2;
     } else {
       return -1;
     }
@@ -386,28 +378,31 @@ ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) 
 
 
 ssize_t varuint_encode(uint16_t val, uint8_t *data, const size_t len) {
-    if (varuint_predict_len(val)==len) {
+  if(len < 1) {
+    return -1;
+  }
+  ssize_t newlen = (ssize_t) len;
+    if (varuint_predict_len(val) == newlen) {
 
-      if (len == 1) {
+      if (newlen == 1) {
 
-        memcpy(data,val, 1);
-        data[0] = 0;  
-        
-      } else if (len == 2) {
+        memcpy(data,&val, 1);
 
-        memcpy(data,val, 2);
-        data = htons(data);
-        data[0] = 1;
+        return 1;
+      } else if (newlen == 2) {
+        uint16_t data2 = htons(val);
+        data2 = data2 | 0x8000;
+        memcpy(data,&data2, 2);
 
+        return 2;
       }
-
-    } else {
       return -1;
     }
+    return -1;
 }
 
 size_t varuint_len(const uint8_t *data) {
-    uint8_t l = data[0];
+    uint8_t l = data[0] >> 7;
     if (l == 0){
       return 1;
     }
@@ -415,13 +410,12 @@ size_t varuint_len(const uint8_t *data) {
 }
 
 
-ssize_t varuint_predict_len(uint16_t val)
-{
+ssize_t varuint_predict_len(uint16_t val) {
     if (val < 128){
       return 1;
     } else if (val < 32768){
       return 2;
-    } 
+    }
 
     return -1;
 }

@@ -5,13 +5,16 @@ COMMONCFILES = packet_implem.c
 
 .SILENT:
 
-all: packet end
+all: clean packet end
 
 packet:
 	gcc $(COMMONCFILES) $(HFILES) -o packet $(CFLAGS) $(OPT)
 
 sender:
 	echo "TODO"
+
+clean:
+	rm -f packet
 
 end:
 	echo "MakeFile completed succefully"
