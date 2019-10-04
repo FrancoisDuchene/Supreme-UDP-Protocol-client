@@ -13,6 +13,9 @@ packet:
 sender:
 	echo "TODO"
 
+test:
+	gcc test/format_tests.c -o tests $(CFLAGS) -lcunit $(OPT)
+
 clean:
 	rm -f packet
 

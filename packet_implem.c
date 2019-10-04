@@ -75,7 +75,7 @@ void pkt_del(pkt_t *pkt) {
 
 pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   //check there is a header
-  if(len < 12) {
+  if(len < 11) {
     return E_NOHEADER;
   }
   //set type, tr et window
@@ -111,8 +111,8 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   if(buf == NULL) {
     return E_NOMEM;
   }
-  memcpy(buf,data,8);
-  crc1 = crc32(crc1,buf,8);
+  memcpy(buf,data,6+lengthOfLength);
+  crc1 = crc32(crc1,buf,6+lengthOfLength);
 
   if(crc1 != pkt->crc1) {
         free(buf);
@@ -168,7 +168,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
   if(finalLength == NULL)
     return E_NOMEM;
   varuint_encode(pkt_get_length(pkt), finalLength, lengthOfLength);
-  memcpy(buf+1,&finalLength,sizeof(lengthOfLength));
+  memcpy(buf+1,finalLength,sizeof(lengthOfLength));
 
   //copy seqnum
   memcpy(buf+1+lengthOfLength,&(pkt->seqnum),sizeof(uint8_t));
@@ -193,9 +193,9 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
   if(buf1 == NULL){
     return E_NOMEM;
   }
-  memcpy(buf1,buf,8);
+  memcpy(buf1,buf,6+lengthOfLength);
 
-  crc1 = crc32(crc1,buf1,8);
+  crc1 = crc32(crc1,buf1,6+lengthOfLength);
   uint32_t bufferCRC1 = htonl(crc1);
   memcpy(buf+6+lengthOfLength, &bufferCRC1, sizeof(uint32_t));
   free(buf1);
@@ -435,6 +435,24 @@ ssize_t predict_header_length(const pkt_t *pkt){
 }
 
 int main() {
-  printf("%s\n", "Coucou");
-
+  pkt_t *yo = pkt_new();
+  pkt_set_type(yo, PTYPE_DATA);
+  pkt_set_tr(yo, 0);
+  pkt_set_window(yo, 2);
+  pkt_set_length(yo, 24);
+  pkt_set_seqnum(yo, 230);
+  pkt_set_timestamp(yo, 1010);
+  char *buf = (char*) malloc(20);
+  size_t ahah = 20;
+  pkt_encode(yo,buf,&ahah);
+  pkt_t *aie = pkt_new();
+  pkt_decode(buf,20,aie);
+  printf("type : %u\n", pkt_get_type(aie));
+  printf("tr : %u\n", pkt_get_tr(aie));
+  printf("window : %u\n", pkt_get_window(aie));
+  printf("length : %u\n", pkt_get_length(aie));
+  printf("seqnum : %u\n", pkt_get_seqnum(aie));
+  printf("timestamp : %u\n", pkt_get_timestamp(aie));
+  printf("crc1 : %u\n", pkt_get_crc1(aie));
+  pkt_del(yo);
 }
