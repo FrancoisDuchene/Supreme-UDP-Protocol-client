@@ -32,17 +32,7 @@
 /* Extra #includes */
 /* Your code will be inserted here */
 
-struct __attribute__((__packed__)) pkt {
-  uint8_t window : 5; // 5bits
-  uint8_t tr : 1; //1bit
-  uint8_t type : 2; // 2bits
-  uint16_t length; // 16bits nbo
-  uint8_t seqnum; // 8bits
-  uint32_t timestamp; // 32 bits
-  uint32_t crc1; //32bits
-  char *payload; // max 4096bits
-  uint32_t crc2; // 32bits
-};
+
 
 /* Extra code */
 /* Your code will be inserted here */
@@ -433,7 +423,7 @@ ssize_t predict_header_length(const pkt_t *pkt){
       return -1;
     }
 }
-
+/*
 int main() {
   pkt_t *yo = pkt_new();
   pkt_set_type(yo, PTYPE_DATA);
@@ -456,3 +446,4 @@ int main() {
   printf("crc1 : %u\n", pkt_get_crc1(aie));
   pkt_del(yo);
 }
+*/

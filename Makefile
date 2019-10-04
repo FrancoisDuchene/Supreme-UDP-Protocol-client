@@ -2,6 +2,7 @@ OPT = -Wall -W -Werror
 CFLAGS = -std=gnu99 -g -lz
 HFILES = headers.h packet_interface.h
 COMMONCFILES = packet_implem.c
+TESTFILES = test/test_main.c test/test.h test/format_tests.c
 
 .SILENT:
 
@@ -13,8 +14,9 @@ packet:
 sender:
 	echo "TODO"
 
-test:
-	gcc test/format_tests.c -o tests $(CFLAGS) -lcunit $(OPT)
+tests:
+	rm -f test_launch
+	gcc $(TESTFILES) $(COMMONCFILES) $(HFILES) -o test_launch -lcunit $(CFLAGS) $(OPT)
 
 clean:
 	rm -f packet

@@ -32,4 +32,6 @@
 
 #include <zlib.h>
 
+#include "packet_interface.h"
+
 #endif // HEADERS_H

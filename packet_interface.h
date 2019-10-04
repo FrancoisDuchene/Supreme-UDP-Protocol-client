@@ -34,6 +34,18 @@ typedef enum {
     E_UNCONSISTENT, /* Le paquet est incoherent */
 } pkt_status_code;
 
+struct __attribute__((__packed__)) pkt {
+  uint8_t window : 5; // 5bits
+  uint8_t tr : 1; //1bit
+  uint8_t type : 2; // 2bits
+  uint16_t length; // 16bits nbo
+  uint8_t seqnum; // 8bits
+  uint32_t timestamp; // 32 bits
+  uint32_t crc1; //32bits
+  char *payload; // max 4096bits
+  uint32_t crc2; // 32bits
+};
+
 /* Alloue et initialise une struct pkt
  * @return: NULL en cas d'erreur */
 pkt_t* pkt_new();
