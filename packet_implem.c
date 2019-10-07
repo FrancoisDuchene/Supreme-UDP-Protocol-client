@@ -111,13 +111,14 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   free(buf);
 
   //set payload, check if crc2 is coherent, set crc2
+  //TODO JE PENSE QU'IL FAUT RAJOUTER UN lengthOfLength ICI
   if(pkt_get_length(pkt) != 0 && len != (16 + sizeof(char)*pkt_get_length(pkt)) && pkt->tr == 0) {
     return E_UNCONSISTENT;
   }
-  else if(pkt_get_length(pkt) == 0 && len != 12 && pkt->tr ==0) {	 // signifie pas de payload
+  else if(pkt_get_length(pkt) == 0 && len != 10+lengthOfLength && pkt->tr ==0) {	 // signifie pas de payload
     return E_UNCONSISTENT;
   }
-  else if(pkt_get_length(pkt) == 0 && len == 12 && pkt->tr == 1) {
+  else if(pkt_get_length(pkt) == 0 && len == 10+lengthOfLength && pkt->tr == 1) {
     return PKT_OK;
   }
 
@@ -329,8 +330,7 @@ pkt_status_code pkt_set_crc2(pkt_t *pkt, const uint32_t crc2) {
 
 pkt_status_code pkt_set_payload(pkt_t *pkt,
                                 const char *data,
-                                const uint16_t length)
-{
+                                const uint16_t length) {
   if(length > MAX_PAYLOAD_SIZE){
     return E_LENGTH;
   }
@@ -338,6 +338,10 @@ pkt_status_code pkt_set_payload(pkt_t *pkt,
     if(pkt->payload != NULL)
       free(pkt->payload);
     pkt_set_length(pkt,0);
+    if(data == NULL) {
+      pkt->payload = NULL;
+      return PKT_OK;
+    }
   }
 
   pkt->payload=(char *) malloc(sizeof(char )*length);
@@ -352,13 +356,13 @@ pkt_status_code pkt_set_payload(pkt_t *pkt,
 ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) {
     uint16_t data2;
     if (len == 1) {
-      data2 = *data & 0x7F;
+      data2 = *data;
       *retval = data2;
 
       return 1;
     } else if (len == 2) {
-      data2 = *data | 0x8000;
-      *retval = ntohs(data2);
+      data2 = *data;
+      *retval = ntohs(data2) & 0x7FFF;
 
       return 2;
     } else {
@@ -380,8 +384,9 @@ ssize_t varuint_encode(uint16_t val, uint8_t *data, const size_t len) {
 
         return 1;
       } else if (newlen == 2) {
-        uint16_t data2 = htons(val);
-        data2 = data2 | 0x8000;
+        uint16_t data2 = val | 0x8000;
+        data2 = htons(data2);
+
         memcpy(data,&data2, 2);
 
         return 2;
@@ -392,7 +397,8 @@ ssize_t varuint_encode(uint16_t val, uint8_t *data, const size_t len) {
 }
 
 size_t varuint_len(const uint8_t *data) {
-    uint8_t l = data[0] >> 7;
+    uint8_t l = (*data >> 7) % 2;
+    //printf("l: %u\n", l);
     if (l == 0){
       return 1;
     }
