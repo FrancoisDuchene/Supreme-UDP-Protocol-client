@@ -75,6 +75,7 @@ void pkt_del(pkt_t *pkt) {
 }
 
 pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
+  
   pkt_status_code st;
   //check there is a header
   if(len < 11) {
@@ -112,7 +113,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   pkt->crc1 = ntohl(pkt->crc1);
 
   uint32_t crc1 = crc32(0L,Z_NULL,0);
-  unsigned char *buf = (unsigned char*) malloc(8);
+  unsigned char *buf = (unsigned char*) malloc(6+lengthOfLength);
   if(buf == NULL) {
     return E_NOMEM;
   }
@@ -120,17 +121,16 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   crc1 = crc32(crc1,buf,6+lengthOfLength);
 
   if(crc1 != pkt->crc1) {
-        free(buf);
     return E_CRC;
   }
   free(buf);
 
   //set payload, check if crc2 is coherent, set crc2
-  //TODO JE PENSE QU'IL FAUT RAJOUTER UN lengthOfLength ICI
+ 
   if(size== 0 && len != (14+lengthOfLength + sizeof(char)*size ) && pkt->tr == 0) {
     return E_UNCONSISTENT;
   }
-  else if(size == 0 && len != 10+lengthOfLength && pkt->tr ==0) {	 // signifie pas de payload
+  else if(size == 0 && len != 10+lengthOfLength && pkt->tr == 0) {	 // signifie pas de payload
     return E_UNCONSISTENT;
   }
   else if(size  == 0 && len == 10+lengthOfLength && pkt->tr == 1) {
@@ -145,12 +145,15 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
 
     uint32_t crc2_calc = crc32(0L,Z_NULL,0);
     unsigned char *buf_crc2 = (unsigned char *) malloc(size);
-    if(buf_crc2 == NULL)
+    if(buf_crc2 == NULL){
       return E_NOMEM;
+    }
     memcpy(buf_crc2,data+10+lengthOfLength,size);
     crc2_calc = crc32(crc2_calc,buf_crc2,size);
-    memcpy(&(pkt->crc2),data+10+lengthOfLength+size,4);
+
+    memcpy(&(pkt->crc2),data+10+lengthOfLength+size,sizeof(uint32_t));
     pkt->crc2 = ntohl(pkt->crc2);
+
     if(crc2_calc != pkt->crc2)
       return E_CRC;
     free(buf_crc2);
@@ -162,16 +165,18 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
   //copy type, tr & window
   memcpy(buf,pkt,sizeof(uint8_t));
 
+  uint16_t size = pkt_get_length(pkt) ;
+
   //change to nbo and copy length
 
-  ssize_t lengthOfLength = varuint_predict_len(pkt_get_length(pkt));
+  ssize_t lengthOfLength = varuint_predict_len(size);
 
   if(lengthOfLength == -1)
     return E_LENGTH;
   uint8_t *finalLength = (uint8_t*) malloc(lengthOfLength);
   if(finalLength == NULL)
     return E_NOMEM;
-  varuint_encode(pkt_get_length(pkt), finalLength, lengthOfLength);
+  varuint_encode(size, finalLength, lengthOfLength);
   memcpy(buf+1,finalLength,sizeof(lengthOfLength));
   free(finalLength);
 
@@ -185,7 +190,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
   }
 
   //check if buff is big enough
-  if(pkt_get_length(pkt) > 512) { //512
+  if(size > 512) { //512
     return E_LENGTH;
   }
 
@@ -211,29 +216,29 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
     return PKT_OK;
   }
   //check if buf is big enough
-  if(*len < (size_t) pkt_get_length(pkt)+12) {
+  if(*len < (size_t) size+12) {
     return E_NOMEM;
   }
   //copy payload
-  memcpy(buf+10+lengthOfLength,pkt->payload,pkt_get_length(pkt));
+  memcpy(buf+10+lengthOfLength,pkt->payload,size);
 
   // compute crc2, set payload, set crc2
   if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0) {
 
-    unsigned char *buf2 = (unsigned char *) malloc(pkt_get_length(pkt));
+    unsigned char *buf2 = (unsigned char *) malloc(size);
     if(buf2==NULL) {
       return E_NOMEM;
     }
     uint32_t crc2 = crc32(0L, Z_NULL, 0);
 
-    memcpy(buf2,pkt->payload,pkt_get_length(pkt));
+    memcpy(buf2,pkt->payload,size);
 
-    crc2 = crc32(crc2,buf2,pkt_get_length(pkt));
-    crc2 = htonl(crc2);
-    memcpy(buf+10+lengthOfLength+pkt_get_length(pkt), &crc2, sizeof(uint32_t));
+    crc2 = crc32(crc2,buf2,size);
+    uint32_t bufferCRC2 = htonl(crc2);
+    memcpy(buf+10+lengthOfLength+size, &bufferCRC2, sizeof(uint32_t));
     free(buf2);
     //update len
-    *len = 14 + lengthOfLength + pkt_get_length(pkt);
+    *len = 14 + lengthOfLength + size;
   }
   return PKT_OK;
 }
