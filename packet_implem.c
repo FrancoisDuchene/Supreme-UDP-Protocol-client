@@ -82,8 +82,11 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   size_t lengthOfLength = varuint_len((uint8_t*) data+1);
   //set length
   varuint_decode((uint8_t*) data+1,lengthOfLength,&(pkt->length));
+
+   uint16_t size = (pkt_get_length(pkt) & 0x7FFF) ;
+
   //memcpy(&(pkt->length),*(data+1), lengthOfLength);
-  if(pkt_get_length(pkt) > MAX_PAYLOAD_SIZE) {
+  if(size > MAX_PAYLOAD_SIZE) {
     return E_LENGTH;
   }
   //set seqnum
@@ -112,23 +115,22 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
 
   //set payload, check if crc2 is coherent, set crc2
   //TODO JE PENSE QU'IL FAUT RAJOUTER UN lengthOfLength ICI
-  if(pkt_get_length(pkt) != 0 && len != (16 + sizeof(char)*pkt_get_length(pkt)) && pkt->tr == 0) {
+  if(size== 0 && len != (16 + sizeof(char)*size ) && pkt->tr == 0) {
     return E_UNCONSISTENT;
   }
-  else if(pkt_get_length(pkt) == 0 && len != 10+lengthOfLength && pkt->tr ==0) {	 // signifie pas de payload
+  else if(size == 0 && len != 10+lengthOfLength && pkt->tr ==0) {	 // signifie pas de payload
     return E_UNCONSISTENT;
   }
-  else if(pkt_get_length(pkt) == 0 && len == 10+lengthOfLength && pkt->tr == 1) {
+  else if(size  == 0 && len == 10+lengthOfLength && pkt->tr == 1) {
     return PKT_OK;
   }
 
-  if(pkt_get_tr(pkt) == 0 && pkt_get_length(pkt) != 0) { //check shorten package
-    pkt_set_payload(pkt,data+10+lengthOfLength, pkt_get_length(pkt));
+  if(pkt_get_tr(pkt) == 0 && size != 0) { //check shorten package
+    pkt_set_payload(pkt,data+10+lengthOfLength, size);
         //if(st == E_LENGTH || st == E_NOMEM || st == E_LENGTH) {
           //  return st;
         //}
 
-    uint16_t size = pkt_get_length(pkt);
     uint32_t crc2_calc = crc32(0L,Z_NULL,0);
     unsigned char *buf_crc2 = (unsigned char *) malloc(size);
     if(buf_crc2 == NULL)
