@@ -22,5 +22,6 @@ void test_varuint_predict_len();
 void test_predict_header_length();
 void test_varuint_decode();
 void test_varuint_encode();
+void test_encode_decode();
 
 #endif

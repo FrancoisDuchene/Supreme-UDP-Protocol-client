@@ -28,7 +28,8 @@ int main(void) {
       CU_add_test(pSuite_format, "Test test_varuint_predict_len", test_varuint_predict_len) == NULL ||
       CU_add_test(pSuite_format, "Test test_predict_header_length", test_predict_header_length) == NULL ||
       CU_add_test(pSuite_format, "Test test_varuint_decode", test_varuint_decode) == NULL ||
-      CU_add_test(pSuite_format, "Test test_varuint_encode", test_varuint_encode) == NULL
+      CU_add_test(pSuite_format, "Test test_varuint_encode", test_varuint_encode) == NULL ||
+      CU_add_test(pSuite_format, "Test test_encode_decode", test_encode_decode) == NULL
     )
   {
     CU_cleanup_registry();

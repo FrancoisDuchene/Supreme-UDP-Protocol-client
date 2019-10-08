@@ -32,6 +32,17 @@
 /* Extra #includes */
 /* Your code will be inserted here */
 
+struct __attribute__((__packed__)) pkt {
+  uint8_t window : 5; // 5bits
+  uint8_t tr : 1; //1bit
+  uint8_t type : 2; // 2bits
+  uint16_t length; // 16bits nbo
+  uint8_t seqnum; // 8bits
+  uint32_t timestamp; // 32 bits
+  uint32_t crc1; //32bits
+  char *payload; // max 4096bits
+  uint32_t crc2; // 32bits
+};
 
 
 /* Extra code */
@@ -64,6 +75,7 @@ void pkt_del(pkt_t *pkt) {
 }
 
 pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
+  pkt_status_code st;
   //check there is a header
   if(len < 11) {
     return E_NOHEADER;
@@ -83,7 +95,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   //set length
   varuint_decode((uint8_t*) data+1,lengthOfLength,&(pkt->length));
 
-   uint16_t size = (pkt_get_length(pkt) & 0x7FFF) ;
+  uint16_t size = pkt_get_length(pkt) ;
 
   //memcpy(&(pkt->length),*(data+1), lengthOfLength);
   if(size > MAX_PAYLOAD_SIZE) {
@@ -115,7 +127,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
 
   //set payload, check if crc2 is coherent, set crc2
   //TODO JE PENSE QU'IL FAUT RAJOUTER UN lengthOfLength ICI
-  if(size== 0 && len != (16 + sizeof(char)*size ) && pkt->tr == 0) {
+  if(size== 0 && len != (14+lengthOfLength + sizeof(char)*size ) && pkt->tr == 0) {
     return E_UNCONSISTENT;
   }
   else if(size == 0 && len != 10+lengthOfLength && pkt->tr ==0) {	 // signifie pas de payload
@@ -126,10 +138,10 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   }
 
   if(pkt_get_tr(pkt) == 0 && size != 0) { //check shorten package
-    pkt_set_payload(pkt,data+10+lengthOfLength, size);
-        //if(st == E_LENGTH || st == E_NOMEM || st == E_LENGTH) {
-          //  return st;
-        //}
+    st = pkt_set_payload(pkt,data+10+lengthOfLength, size);
+    if(st == E_LENGTH || st == E_NOMEM || st == E_LENGTH) {
+        return st;
+    }
 
     uint32_t crc2_calc = crc32(0L,Z_NULL,0);
     unsigned char *buf_crc2 = (unsigned char *) malloc(size);
@@ -137,7 +149,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
       return E_NOMEM;
     memcpy(buf_crc2,data+10+lengthOfLength,size);
     crc2_calc = crc32(crc2_calc,buf_crc2,size);
-    memcpy(&(pkt->crc2),data+10+size+lengthOfLength,4);
+    memcpy(&(pkt->crc2),data+10+lengthOfLength+size,4);
     pkt->crc2 = ntohl(pkt->crc2);
     if(crc2_calc != pkt->crc2)
       return E_CRC;
@@ -153,7 +165,6 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
   //change to nbo and copy length
 
   ssize_t lengthOfLength = varuint_predict_len(pkt_get_length(pkt));
-  ssize_t headerLength = predict_header_length(pkt);
 
   if(lengthOfLength == -1)
     return E_LENGTH;
@@ -162,6 +173,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
     return E_NOMEM;
   varuint_encode(pkt_get_length(pkt), finalLength, lengthOfLength);
   memcpy(buf+1,finalLength,sizeof(lengthOfLength));
+  free(finalLength);
 
   //copy seqnum
   memcpy(buf+1+lengthOfLength,&(pkt->seqnum),sizeof(uint8_t));
@@ -182,7 +194,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
 
   //copy crc1
   uint32_t crc1 = crc32(0L, Z_NULL, 0);
-  unsigned char *buf1 = (unsigned char*) malloc(headerLength);
+  unsigned char *buf1 = (unsigned char*) malloc(6+lengthOfLength);
   if(buf1 == NULL){
     return E_NOMEM;
   }
@@ -364,7 +376,8 @@ ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) 
       return 1;
     } else if (len == 2) {
       data2 = *data;
-      *retval = ntohs(data2) & 0x7FFF;
+      *retval = ntohs(data2);
+      *retval = *retval & 0x7FFF;
 
       return 2;
     } else {

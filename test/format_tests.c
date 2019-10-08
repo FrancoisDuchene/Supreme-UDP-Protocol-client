@@ -403,6 +403,7 @@ void test_varuint_encode() {
   ans = varuint_encode(val, data_short, 1);
   CU_ASSERT_EQUAL(ans,1);
   CU_ASSERT_EQUAL(*data_short,127);
+  // Cas 3 : val = 129; data = , ans : 2
   // Case 3 : val = 256; data = 1, ans = 2
   val = 256;
   ans = varuint_encode(val, data_long, 2);
@@ -411,4 +412,27 @@ void test_varuint_encode() {
   // Fin
   free(data_short);
   free(data_long);
+}
+
+void test_encode_decode() {
+    pkt_t *pkt = pkt_new();
+    pkt_t *recv_pkt = pkt_new();
+    pkt_set_type(pkt,PTYPE_DATA);
+    pkt_set_payload(pkt, "COUCOU", 7);
+
+    pkt_status_code st;
+    size_t payloadLength = 20;
+
+    char *buf = (char*) malloc(sizeof(char) * payloadLength);
+    char *buf2 = (char*) malloc(sizeof(char) * payloadLength);
+    st = pkt_encode(pkt, buf, &payloadLength);
+    CU_ASSERT_EQUAL(st, PKT_OK);
+    st = pkt_decode(buf2, 20, recv_pkt);
+    CU_ASSERT_EQUAL(st, E_TYPE);
+    CU_ASSERT_EQUAL(pkt_get_type(pkt),pkt_get_type(recv_pkt));
+    CU_ASSERT_EQUAL(pkt_get_length(pkt),pkt_get_length(recv_pkt));
+    //CU_ASSERT_NSTRING_EQUAL(pkt_get_payload(pkt),pkt_get_payload(recv_pkt),10);
+    CU_ASSERT_EQUAL(pkt_get_crc1(pkt),pkt_get_crc1(recv_pkt));
+    CU_ASSERT_EQUAL(pkt_get_crc2(pkt),pkt_get_crc2(recv_pkt));
+    pkt_del(pkt);
 }
