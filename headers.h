@@ -32,6 +32,9 @@
 
 #include <zlib.h>
 
+// Fichiers .h du projet
+
 #include "packet_interface.h"
+#include "sender.h"
 
 #endif // HEADERS_H
