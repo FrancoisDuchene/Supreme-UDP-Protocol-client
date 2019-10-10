@@ -241,3 +241,21 @@ void print_pkt(const pkt_t* pkt, bool print_payload) {
   }
   printf("\nLe crc2 vaut : %u\n", crc2);
 }
+
+void sender_loop(int sockfd, struct addrinfo* server) {
+  pkt_status_code st;
+  ssize_t bytes_sent = 0;
+  uint8_t seqnum = 1;
+  uint32_t timestamp = 0;
+  uint8_t window = 1;
+
+  pkt_t* pack_sent = pkt_new();
+  pkt_t* pack_recv = pkt_new();
+
+  while() {
+
+  }
+
+  pkt_del(pack_sent);
+  pkt_del(pack_recv);
+}
