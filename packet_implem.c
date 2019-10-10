@@ -64,7 +64,7 @@ void pkt_del(pkt_t *pkt) {
 }
 
 pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
-  
+
   pkt_status_code st;
   //Check si header valide
   if(len < 11) {
@@ -84,7 +84,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   }
 
   //Récupération de la longueur du length en byte
-  size_t lengthOfLength = varuint_len((uint8_t*) data+1); 
+  size_t lengthOfLength = varuint_len((uint8_t*) data+1);
   //Set length
   varuint_decode((uint8_t*) data+1,lengthOfLength,&(pkt->length));
 
@@ -120,7 +120,7 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
   free(buf);
 
   //Set payload, check if crc2 is coherent, set crc2
-  if(size== 0 && len != (14+lengthOfLength + sizeof(char)*size ) && pkt->tr == 0) {
+  if(size != 0 && len != (14+lengthOfLength + sizeof(char)*size ) && pkt->tr == 0) {
     return E_UNCONSISTENT;
   }
   else if(size == 0 && len != 10+lengthOfLength && pkt->tr == 0) {	 // signifie pas de payload
@@ -143,12 +143,12 @@ pkt_status_code pkt_decode(const char *data, const size_t len, pkt_t *pkt) {
       return E_NOMEM;
     }
     memcpy(buf_crc2,data+10+lengthOfLength,size);
-    crc2_calc = crc32(crc2_calc,buf_crc2,size); 
+    crc2_calc = crc32(crc2_calc,buf_crc2,size);
 
     //Copie du crc2 stocké dans le paquet
     memcpy(&(pkt->crc2),data+10+lengthOfLength+size,sizeof(uint32_t));
-    pkt->crc2 = ntohl(pkt->crc2); 
-    
+    pkt->crc2 = ntohl(pkt->crc2);
+
     //Vérification de la validité du crc2
     if(crc2_calc != pkt->crc2)
       return E_CRC;
@@ -217,7 +217,7 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
   }
   //Copie du payload
   memcpy(buf+10+lengthOfLength,pkt->payload,size);
- 
+
   //Vérification de la présence et validité du payload
   if(pkt_get_payload(pkt) != NULL && pkt_get_tr(pkt) == 0) {
 
@@ -378,7 +378,7 @@ ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) 
       //Copie dans le champs retval donc pkt->length de data avec une longueur de 1 byte
       memcpy(retval,data,1);
       return 1;
-    } 
+    }
     //Si deux bytes
     else if (len == 2) {
       uint16_t data2;
@@ -387,7 +387,7 @@ ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) 
       *retval = ntohs(data2); //Host byte-order
       *retval = *retval & 0x7FFF; //Enlève le champs L
       return 2;
-    } 
+    }
     //Si longueur non valide
     else {
       return -1;
@@ -396,11 +396,11 @@ ssize_t varuint_decode(const uint8_t *data, const size_t len, uint16_t *retval) 
 
 
 ssize_t varuint_encode(uint16_t val, uint8_t *data, const size_t len) {
-  //longueur en byte valide? 
+  //longueur en byte valide?
   if(len < 1) {
     return -1;
   }
-  
+
   ssize_t newLen = (ssize_t) len;
   //Vérifie si le len correspond effectivement à la longueur de val
   if (varuint_predict_len(val) == newLen) {
@@ -411,7 +411,7 @@ ssize_t varuint_encode(uint16_t val, uint8_t *data, const size_t len) {
         //Copie de la valeur
         memcpy(data,&val, 1);
         return 1;
-      } 
+      }
       //si entre 8 et 15 bits
       else if (newLen == 2) {
 
@@ -455,33 +455,32 @@ ssize_t predict_header_length(const pkt_t *pkt){
 
     uint16_t lengthActu = pkt_get_length(pkt); // récupération de la longueur du length
     if (lengthActu < 32768) {
-      return varuint_predict_len(lengthActu) + 10; // longueur du length + 10 bits du header 
-    } else {    // length non valide 
+      return varuint_predict_len(lengthActu) + 10; // longueur du length + 10 bits du header
+    } else {    // length non valide
       return -1;
     }
 }
-
-int main() {
-  pkt_t *yo = pkt_new();
-  pkt_set_type(yo, PTYPE_DATA);
-  pkt_set_tr(yo, 0);
-  pkt_set_window(yo, 2);
-  pkt_set_length(yo, 24);
-  pkt_set_seqnum(yo, 230);
-  pkt_set_timestamp(yo, 1010);
-  char *buf = (char*) malloc(20);
-  size_t ahah = 20;
-  pkt_encode(yo,buf,&ahah);
-  pkt_t *aie = pkt_new();
-  pkt_decode(buf,20,aie);
-  printf("type : %u\n", pkt_get_type(aie));
-  printf("tr : %u\n", pkt_get_tr(aie));
-  printf("window : %u\n", pkt_get_window(aie));
-  printf("length : %u\n", pkt_get_length(aie));
-  printf("seqnum : %u\n", pkt_get_seqnum(aie));
-  printf("timestamp : %u\n", pkt_get_timestamp(aie));
-  printf("crc1 : %u\n", pkt_get_crc1(aie));
-  printf("crc2 : %u\n", pkt_get_crc2(aie));
-  pkt_del(yo);
-}
-
+//
+// int main() {
+//   pkt_t *yo = pkt_new();
+//   pkt_set_type(yo, PTYPE_DATA);
+//   pkt_set_tr(yo, 0);
+//   pkt_set_window(yo, 2);
+//   pkt_set_length(yo, 24);
+//   pkt_set_seqnum(yo, 230);
+//   pkt_set_timestamp(yo, 1010);
+//   char *buf = (char*) malloc(20);
+//   size_t ahah = 20;
+//   pkt_encode(yo,buf,&ahah);
+//   pkt_t *aie = pkt_new();
+//   pkt_decode(buf,20,aie);
+//   printf("type : %u\n", pkt_get_type(aie));
+//   printf("tr : %u\n", pkt_get_tr(aie));
+//   printf("window : %u\n", pkt_get_window(aie));
+//   printf("length : %u\n", pkt_get_length(aie));
+//   printf("seqnum : %u\n", pkt_get_seqnum(aie));
+//   printf("timestamp : %u\n", pkt_get_timestamp(aie));
+//   printf("crc1 : %u\n", pkt_get_crc1(aie));
+//   printf("crc2 : %u\n", pkt_get_crc2(aie));
+//   pkt_del(yo);
+// }
