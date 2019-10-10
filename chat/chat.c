@@ -7,6 +7,31 @@
 #include "read_write_loop.h"
 #include "wait_for_client.h"
 
+
+/* Resolve the resource name to an usable IPv6 address
+ * @address: The name to resolve
+ * @rval: Where the resulting IPv6 address descriptor should be stored
+ * @return: NULL if it succeeded, or a pointer towards
+ *          a string describing the error if any.
+ *          (const char* means the caller cannot modify or free the return value,
+ *           so do not use malloc!)
+ */
+const char * real_address(const char *address, struct sockaddr_in6 *rval) {
+	struct addrinfo hints;
+	hints.ai_family = AF_INET6;
+ 	hints.ai_socktype = SOCK_DGRAM;
+  	hints.ai_protocol = IPPROTO_UDP;
+	struct addrinfo **res;
+	int status = getaddrinfo(address,8000,&hints, res);
+	if(status != 0 ){
+		return gai_strerror(status);
+	}
+	memcpy(rval,res,sizeof(struct sockaddr_in6 *));
+	free(res);
+	return NULL;
+}
+
+
 int main(int argc, char *argv[])
 {
 	int client = 0;
