@@ -23,28 +23,28 @@ typedef enum {
 /* Valeur de retours des fonctions */
 typedef enum {
     PKT_OK = 0,     /* Le paquet a ete traite avec succes */
-    E_TYPE,         /* Erreur liee au champs Type */
-    E_TR,           /* Erreur liee au champ TR */
-    E_LENGTH,       /* Erreur liee au champs Length  */
-    E_CRC,          /* CRC invalide */
-    E_WINDOW,       /* Erreur liee au champs Window */
-    E_SEQNUM,       /* Numero de sequence invalide */
-    E_NOMEM,        /* Pas assez de memoire */
-    E_NOHEADER,     /* Le paquet n'a pas de header (trop court) */
-    E_UNCONSISTENT, /* Le paquet est incoherent */
+    E_TYPE = 1,         /* Erreur liee au champs Type */
+    E_TR = 2,           /* Erreur liee au champ TR */
+    E_LENGTH = 3,       /* Erreur liee au champs Length  */
+    E_CRC = 4,          /* CRC invalide */
+    E_WINDOW = 5,       /* Erreur liee au champs Window */
+    E_SEQNUM = 6,       /* Numero de sequence invalide */
+    E_NOMEM = 7,        /* Pas assez de memoire */
+    E_NOHEADER = 8,     /* Le paquet n'a pas de header (trop court) */
+    E_UNCONSISTENT = 9, /* Le paquet est incoherent */
 } pkt_status_code;
 
-struct __attribute__((__packed__)) pkt {
-  uint8_t window : 5; // 5bits
-  uint8_t tr : 1; //1bit
-  uint8_t type : 2; // 2bits
-  uint16_t length; // 16bits nbo
-  uint8_t seqnum; // 8bits
-  uint32_t timestamp; // 32 bits
-  uint32_t crc1; //32bits
-  char *payload; // max 4096bits
-  uint32_t crc2; // 32bits
-};
+// struct __attribute__((__packed__)) pkt {
+//   uint8_t window : 5; // 5bits
+//   uint8_t tr : 1; //1bit
+//   uint8_t type : 2; // 2bits
+//   uint16_t length; // 16bits nbo
+//   uint8_t seqnum; // 8bits
+//   uint32_t timestamp; // 32 bits
+//   uint32_t crc1; //32bits
+//   char *payload; // max 4096bits
+//   uint32_t crc2; // 32bits
+// };
 
 /* Alloue et initialise une struct pkt
  * @return: NULL en cas d'erreur */
