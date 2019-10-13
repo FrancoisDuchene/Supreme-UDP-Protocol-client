@@ -19,7 +19,7 @@ const char * real_address(const char *address, struct sockaddr_in6 *rval) {
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
  	hints.ai_socktype = SOCK_DGRAM;
-  	hints.ai_protocol = IPPROTO_UDP;
+  hints.ai_protocol = IPPROTO_UDP;
 	struct addrinfo *res;
 	char *port = "8000";
 	int status = getaddrinfo(address, port, &hints, &res);
@@ -28,5 +28,6 @@ const char * real_address(const char *address, struct sockaddr_in6 *rval) {
 	}
 	memcpy(rval, res, sizeof(struct sockaddr_in6));
 	free(res);
+  rval->sin6_family = AF_INET6;
 	return NULL;
 }

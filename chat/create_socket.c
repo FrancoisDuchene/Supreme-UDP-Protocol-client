@@ -47,14 +47,15 @@ int create_socket(struct sockaddr_in6 *source_addr,
 				}
 		}
 		if (client) {
-			dest_addr->sin6_port = dst_port;
+			dest_addr->sin6_port = htons(dst_port);
 			if(connect(sockfd, (struct sockaddr *) dest_addr, sizeof(struct sockaddr_in6)) == -1) {
 				perror("Connecting socked failed");
 				close(sockfd);
 				return -1;
 			}
 		} else {
-			source_addr->sin6_port = src_port;
+			source_addr->sin6_port = htons(src_port);
+      source_addr->sin6_addr = in6addr_any;
 			if(bind(sockfd, (struct sockaddr *) source_addr, sizeof(struct sockaddr_in6)) == -1) {
 				perror("Binding didn't worked");
 				close(sockfd);
