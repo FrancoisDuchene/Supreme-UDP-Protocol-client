@@ -7,6 +7,84 @@
 #include "read_write_loop.h"
 #include "wait_for_client.h"
 
+
+/* Resolve the resource name to an usable IPv6 address
+ * @address: The name to resolve
+ * @rval: Where the resulting IPv6 address descriptor should be stored
+ * @return: NULL if it succeeded, or a pointer towards
+ *          a string describing the error if any.
+ *          (const char* means the caller cannot modify or free the return value,
+ *           so do not use malloc!)
+ */
+const char * real_address(const char *address, struct sockaddr_in6 *rval) {
+	struct addrinfo hints;
+	hints.ai_family = AF_INET6;
+ 	hints.ai_socktype = SOCK_DGRAM;
+  	hints.ai_protocol = IPPROTO_UDP;
+	struct addrinfo **res;
+	int status = getaddrinfo(address,8000,&hints, res);
+	if(status != 0 ){
+		return gai_strerror(status);
+	}
+	memcpy(rval,res,sizeof(struct sockaddr_in6 *));
+	free(res);
+	return NULL;
+}
+
+/* Loop reading a socket and printing to stdout,
+ * while reading stdin and writing to the socket
+ * @sfd: The socket file descriptor. It is both bound and connected.
+ * @return: as soon as stdin signals EOF
+ */
+void read_write_loop(int sfd){
+	fd_set readsfd;
+	fd_set writesfd;
+	struct timeval timeout;
+	char buf[1024];
+	char buf2[1024];
+
+	timeout.tv_sec = 3;
+	timeout.tv_usec = 500000;
+
+	FD_ZERO(&readsfd);
+ 	FD_ZERO(&writesfd);
+	FD_SET(sfd, &readsfd);
+	FD_SET(sfd, &writesfd);
+
+	while (1){
+
+		if (select(sfd + 1, &readsfd, &writesfd, NULL, &timeout) == -1) {
+			printf (" Error select \n");
+			return ;
+		}
+
+		fread(buf, strlen(buf)+1, 1, STDIN_FILENO);
+		if (buf != NULL) {
+			if(FD_ISSET(sfd, &writesfd)){ 
+				if(send(sfd,(void *) buf,sizeof(buf),0)==-1){
+					printf(" Error recv \n");
+					return;
+				}
+			}
+		}
+
+		if(FD_ISSET(sfd, &readsfd)){ 
+			if(recv(sfd,(void*)buf2,sizeof(buf2),0)==-1){
+				printf(" Error recv \n");
+				return;
+			}	
+			
+			if(strcmp(buf , "Q") == 0){
+				free (buf);
+				printf("End\n");
+                break;
+			}
+			fwrite(buf2, strlen(buf2)+1, 1, STDOUT_FILENO);
+		}
+		
+	}	
+}
+
 int main(int argc, char *argv[])
 {
 	int client = 0;
