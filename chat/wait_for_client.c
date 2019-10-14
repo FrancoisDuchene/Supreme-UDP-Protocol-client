@@ -13,11 +13,11 @@
  * and could be repeated several times blocking only at the first call.
  */
 int wait_for_client(int sfd) {
-	#define BUF_SIZE 50
+	#define BUF_SIZE 1024
 	char buf[BUF_SIZE];
-	struct sockaddr_storage fromAddr;
+	struct sockaddr_in6 fromAddr;
 	socklen_t fromAddrLen = sizeof(fromAddr);
-	ssize_t bytes_recv = recvfrom(sfd, buf, BUF_SIZE, 0,
+	ssize_t bytes_recv = recvfrom(sfd, buf, BUF_SIZE, MSG_PEEK,
 																  (struct sockaddr*) &fromAddr, &fromAddrLen);
 	if (bytes_recv < 0) {
 		fprintf(stderr, "No bytes received\n");

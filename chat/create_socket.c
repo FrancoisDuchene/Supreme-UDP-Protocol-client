@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <unistd.h>
 #include <stdio.h> /* fprintf */
 #include <sys/types.h>
@@ -21,7 +22,7 @@ int create_socket(struct sockaddr_in6 *source_addr,int src_port,struct sockaddr_
 		return -1;
 	}
 
-	int client = 0; 
+	int client = 0;
 	if(source_addr == NULL) {
 		if(dest_addr == NULL) {
 			fprintf(stderr, "source_addr and dest_addr are NULL\n");
@@ -45,10 +46,9 @@ int create_socket(struct sockaddr_in6 *source_addr,int src_port,struct sockaddr_
 			return -1;
 		}
 	}
-	
+
 	if (client) {
 		dest_addr->sin6_port = htons(dst_port);
-        dest_addr->sin6_addr = in6addr_loopback;
 		if(connect(sockfd, (struct sockaddr *) dest_addr, sizeof(struct sockaddr_in6)) == -1) {
             fprintf(stderr, "Connecting socked failed\n");
 			close(sockfd);
@@ -56,7 +56,6 @@ int create_socket(struct sockaddr_in6 *source_addr,int src_port,struct sockaddr_
 		}
 	} else {
 		source_addr->sin6_port = htons(src_port);
-      	source_addr->sin6_addr = in6addr_any;
 		if(bind(sockfd, (struct sockaddr *) source_addr, sizeof(struct sockaddr_in6)) == -1) {
          	fprintf(stderr, "Binding didn't worked\n");
 			close(sockfd);

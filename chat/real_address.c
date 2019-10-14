@@ -15,19 +15,21 @@
  *           so do not use malloc!)
  */
 const char * real_address(const char *address, struct sockaddr_in6 *rval) {
-	struct addrinfo hints;
+	struct addrinfo hints, *res, *addr;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
  	hints.ai_socktype = SOCK_DGRAM;
   hints.ai_protocol = IPPROTO_UDP;
-	struct addrinfo *res;
-	char *port = "8000";
-	int status = getaddrinfo(address, port, &hints, &res);
+	hints.ai_flags = 0;
+
+	int status = getaddrinfo(address, NULL, &hints, &res);
+
 	if(status != 0 ){
 		return gai_strerror(status);
 	}
-	memcpy(rval, res, sizeof(struct sockaddr_in6));
-	free(res);
-  rval->sin6_family = AF_INET6;
+
+	for (addr = res; addr != NULL; addr = addr->ai_next)
+		memcpy(rval, addr->ai_addr, sizeof(struct sockaddr_in6));
+
 	return NULL;
 }
