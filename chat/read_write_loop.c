@@ -1,11 +1,15 @@
 #include <stdlib.h> /* EXIT_X */
 #include <stdio.h> /* fprintf */
-#include <sys/select.h>
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h>
+#include <poll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include "read_write_loop.h"
+
+#define TIMEOUT -1
 
 /* Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
@@ -13,48 +17,53 @@
  * @return: as soon as stdin signals EOF
  */
 void read_write_loop(int sfd){
+	char *buf = (char *) malloc(1024*sizeof(char));
+	if(buf == NULL) {
+		perror("Erreur malloc read_write_loop");
+		return;
+	}
 
-	fd_set readsfd;
-	struct timeval timeout;
-	char buf[1024];
-    char buf2[1024];
+	int eof_stdin = 1;
+	int eof_sfd = 1;
+	int status;
 
-	timeout.tv_sec = 3;
-	timeout.tv_usec = 500000;
-    
-    FD_ZERO(&readsfd);
-    FD_SET(STDIN_FILENO, &readsfd);
-	FD_SET(sfd, &readsfd);
+	struct pollfd ufds[2];
+	// Le clavier
+	ufds[0].fd = STDIN_FILENO;
+	ufds[0].events = POLLIN;
+	// Socket d'envoi
+	ufds[1].fd = sfd;
+	ufds[1].events = POLLIN;
 
-	while (1) { 
-       
-		if (select(sfd + 1, &readsfd, NULL, NULL, &timeout) == -1) {
-			printf (" Error select \n");
-			return ;
+	while (eof_stdin || eof_sfd) {
+
+		status = poll(ufds, 2, TIMEOUT);
+
+		if(status < 0) {
+			perror("An error has occured with poll");
+			return;
+		} else if (status == 0) {
+			fprintf(stderr, "Timeout has occured ! No data transfered after %d seconds\n", TIMEOUT);
+			return;
+		} else {
+				if (ufds[0].revents & POLLIN && eof_stdin) {
+					// On lit sur l'input et on l'envoie
+		      size_t readLen = read(STDIN_FILENO, buf, sizeof(buf));
+					readLen = send(sfd, (void *) buf, readLen, 0);
+					if(readLen == 0) {
+						eof_stdin = 0;
+					}
+
+				}
+
+				if (ufds[1].revents & POLLIN && eof_sfd) {
+					// On reçoit un message et on l'affiche
+					size_t readLen = recv(sfd, (void *) buf, 1024, 0);
+					readLen = write(STDOUT_FILENO, (void *) buf, readLen);
+					if(!readLen)
+						eof_sfd = 0;
+				}
 		}
-        
-        if(FD_ISSET(STDIN_FILENO, &readsfd)){
-            ssize_t readL = read(STDIN_FILENO,buf,sizeof(buf));
-            
-			if(readL == EOF){
-				break;
-			}
-            
-            size_t readLen = (size_t)readL;
-
-			if((int) write(sfd,buf,readLen) == -1){
-                printf(" Error write1 \n");
-				return;
-            }
-		}
-		
-        if(FD_ISSET(sfd, &readsfd)){
-            size_t readLen = (size_t)read(sfd,buf2,sizeof(buf2));
-
-			if((int) write(STDOUT_FILENO,buf2,readLen) == -1){
-                printf(" Error write2 \n");
-				return;
-            }
-		}    
-    }
+  }
+	free(buf);
 }
