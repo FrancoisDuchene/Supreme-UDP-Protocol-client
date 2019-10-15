@@ -70,22 +70,3 @@ int create_socket(struct sockaddr_in6 *source_addr,int src_port,struct sockaddr_
 	}
 	return sockfd;
 }
-
-int wait_for_client(int sfd) {
-	#define BUF_SIZE 1024
-	char buf[BUF_SIZE];
-	struct sockaddr_in6 fromAddr;
-	socklen_t fromAddrLen = sizeof(fromAddr);
-	ssize_t bytes_recv = recvfrom(sfd, buf, BUF_SIZE, MSG_PEEK,
-																  (struct sockaddr*) &fromAddr, &fromAddrLen);
-	if (bytes_recv < 0) {
-		fprintf(stderr, "No bytes received\n");
-		return -1;
-	} else {
-		if(connect(sfd, (struct sockaddr *) &fromAddr, fromAddrLen) == -1) {
-			fprintf(stderr, "Try to connect received socket failed\n");
-			return -1;
-		}
-		return 0;
-	}
-}

@@ -14,7 +14,6 @@
 #include <sys/wait.h>
 
 #include <stddef.h> /* size_t */
-#include <stdint.h> /* uintx_t */
 
 // Bibliothèques réseaux
 
@@ -24,18 +23,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
-// Bibliothèques où il faut inclure une extension dans le MakeFile
-
-#include <zlib.h>
+#include "general.h"
 
 int main (int argc, char **argv);
-int send_test_message(int sockfd, struct addrinfo *server);
-void recv_test_message(int sockfd, struct addrinfo *server);
-int init_socket();
-struct addrinfo* get_addr_struct(const char *host, const char *port);
-void print_pkt_osef(pkt_t* pkt, bool print_payload);
 
 #endif // SENDER_H
