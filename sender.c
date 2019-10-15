@@ -1,4 +1,5 @@
-#include "headers.h"
+#include "sender.h"
+#include "packet_interface.h"
 
 #define MAXLINE 1024
 
@@ -139,7 +140,7 @@ void recv_test_message(int sockfd, struct addrinfo *server) {
   //   fprintf("Received a packet from unknow source\n");
   //   return;
   // }
-  print_pkt(pkt_recv, false);
+  print_pkt_osef(pkt_recv, false);
 
   pkt_del(pkt_recv);
 }
@@ -152,6 +153,7 @@ int init_socket() {
   int sockfd = socket(AF_INET6,SOCK_DGRAM,IPPROTO_UDP);
   if(sockfd < 0) {
     perror("socket creation failed");
+    return -1;
   }
   return sockfd;
 }
@@ -193,7 +195,7 @@ struct addrinfo* get_addr_struct(const char *host, const char *port) {
   return rep;
 }
 
-void print_pkt(const pkt_t* pkt, bool print_payload) {
+void print_pkt_osef(pkt_t* pkt, bool print_payload) {
   bool payload_is_empty = false;
   // On load en cache tous les paramètres
   const ptypes_t type = pkt_get_type(pkt);
@@ -240,22 +242,4 @@ void print_pkt(const pkt_t* pkt, bool print_payload) {
     }
   }
   printf("\nLe crc2 vaut : %u\n", crc2);
-}
-
-void sender_loop(int sockfd, struct addrinfo* server) {
-  pkt_status_code st;
-  ssize_t bytes_sent = 0;
-  uint8_t seqnum = 1;
-  uint32_t timestamp = 0;
-  uint8_t window = 1;
-
-  pkt_t* pack_sent = pkt_new();
-  pkt_t* pack_recv = pkt_new();
-
-  while() {
-
-  }
-
-  pkt_del(pack_sent);
-  pkt_del(pack_recv);
 }
