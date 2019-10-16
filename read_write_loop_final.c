@@ -1,6 +1,11 @@
 #include "read_write_loop_final.h"
 #include "packet_interface.h"
 
+
+int curLow = 0;
+int curHi = 1;
+int curWindow [256]; 
+
 /* Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
  * @sfd: The socket file descriptor. It is both bound and connected.
@@ -21,13 +26,13 @@ general_status_code read_write_loop(int sfd) {
 	pkt_t *pkt_actu = NULL;
 
 	/* Variables lié à POLL */
-		struct pollfd ufds[2];
-		// Le clavier
-		ufds[0].fd = STDIN_FILENO;
-		ufds[0].events = POLLIN;
-		// Socket d'envoi
-		ufds[1].fd = sfd;
-		ufds[1].events = POLLIN;
+	struct pollfd ufds[2];
+	// Le clavier
+	ufds[0].fd = STDIN_FILENO;
+	ufds[0].events = POLLIN;
+	// Socket d'envoi
+	ufds[1].fd = sfd;
+	ufds[1].events = POLLIN;
 
 	while (eof_stdin || eof_sfd) {
 
@@ -81,20 +86,49 @@ general_status_code read_write_loop(int sfd) {
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
 					print("Erreur allocation du paquet \n");
-									free_loop_res(buf, pkt_actu);
-					return E_NOMEM;
+					free_loop_res(buf, pkt_actu);
+					return E_NOMEMORY;
 				}
 
 				status = pkt_decode(buf,readLen,pkt_actu);
 				if(status != 0 ) {
 					print("Erreur lors du decode de type : %u\n",status);
-									free_loop_res(buf, pkt_actu);
+					free_loop_res(buf, pkt_actu);
 					return E_DECODE;
 				}
 
-				readLen = write(STDOUT_FILENO, (void *) buf, readLen);
-				if(!readLen)
-					eof_sfd = 0;
+				int type = pkt_get_type(pkt_actu) ;
+
+				if (type ==  PTYPE_DATA){
+					print("Lol mais n'on est pas un receiver ici, vous êtes toctoc, fufu \n");
+				} else if (type == PTYPE_ACK) {
+
+					int tr = pkt_get_tr(pkt_actu) ;
+
+					if (tr == 0){
+
+						int seqnum = pkt_get_seqnum(pkt_actu);
+						pkt_Ack(seqnum);
+					
+						//int window = pkt_get_window(pkt_actu);
+						//fonction pour modifier la window (window);
+					}
+					
+				} else if(type == PTYPE_NACK) {
+
+					int tr = pkt_get_tr(pkt_actu) ;
+
+					if (tr == 0){
+
+						int seqnum = pkt_get_seqnum(pkt_actu);
+						pkt_Nack(seqnum);
+
+					}
+
+				} else {
+					print("Ce type est inconnu au bataillon \n");
+				}
+
 			}
 		}
   	}
@@ -110,4 +144,57 @@ general_status_code free_loop_res(char *buffer, pkt_t *pkt) {
 	if(buffer != NULL) free(buffer);
 	if(pkt != NULL) pkt_del(pkt);
 	return OK;
+}
+
+void pkt_Ack(int seqnum) {
+
+	if (curLow < curHi){
+		if (seqnum > curLow && seqnum < curHi) {
+			int diff = seqnum - curLow;
+			curLow = (curLow + diff) %256;
+			curHi = (curHi + diff) %256;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+	} else {
+
+		if ( (seqnum > curLow && seqnum < 256) || (seqnum < curHi && seqnum >= 0) ) {
+			int diff;
+			if (seqnum < 256){
+				diff = seqnum - curLow;
+			} else {
+				diff = 256 - curLow + seqnum;
+			}
+			curLow = (curLow + diff) %256 ;
+			curHi = (curHi + diff) %256;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+
+	}
+
+}
+
+void pkt_Nack(int seqnum) {
+	if (curLow < curHi){
+		if (seqnum > curLow && seqnum < curHi) {
+			printf("Numero de seqnum valide mais je sais pas ce qu'on va en faire pour l'instant");
+			return;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+	} else {
+
+		if ( (seqnum > curLow && seqnum < 256) || (seqnum < curHi && seqnum >= 0) ) {
+			printf("Numero de seqnum valide mais je sais pas ce qu'on va en faire pour l'instant");
+			return;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+
+	}
 }
