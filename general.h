@@ -3,7 +3,7 @@
 
 typedef enum {
   OK,         // SUCCÈS, tout va bien
-  E_NOMEM,    // Mémoire insuffisante
+  E_NOMEMORY,    // Mémoire insuffisante
   E_POLL,     // Erreur liée à POLL
   E_TIMEOUT,  // Erreur de timeout, pas de connexion
   E_DECODE,   // Erreur lié au décodage du paquet reçu, erreur fatale ne pouvant être résolue

@@ -20,7 +20,7 @@
  *          (const char* means the caller cannot modify or free the return value,
  *           so do not use malloc!)
  */
-const char * real_address(const char *address, struct sockaddr_in6 *rval);
+char * real_address(const char *address, struct sockaddr_in6 *rval);
 
 /* Creates a socket and initialize it
  * @source_addr: if !NULL, the source address that should be bound to this socket

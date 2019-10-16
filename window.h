@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdint.h>
 
 /* Fonction qui check si le seqnum donné se trouve dans la window désigné par les
  * deux marqueurs cur_debut et cur_fin qui indiquent respectivement le début et la fin

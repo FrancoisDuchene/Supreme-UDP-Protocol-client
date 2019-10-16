@@ -1,12 +1,13 @@
 #include "sender.h"
+#include "general.h"
+#include "init_connexion.h"
 #include "packet_interface.h"
+#include "read_write_loop_final.h"
 
 #define MAXLINE 1024
 
 int main (int argc, char **argv) {
   int opt;
-  char *port;
-  char *host;
   char *file = NULL;
   if (argc < 2) {
       fprintf(stderr, "`%s' arguments missing\n", argv[0]);
@@ -37,8 +38,12 @@ int main (int argc, char **argv) {
       }
   }
 
-  host = argv[argc-2];
-  port = argv[argc-1];
+  const char *host = argv[argc-2];
+  const int port = atoi(argv[argc-1]);
+  if(port < 1024) {
+    fprintf(stderr, "Port invalide");
+    return EXIT_FAILURE;
+  }
 
   int fd;
   if(file == NULL) {
@@ -53,6 +58,11 @@ int main (int argc, char **argv) {
   // On génère l'adresse
   struct sockaddr_in6 addr;
   char *err = real_address(host, &addr);
+  if(err != NULL) {
+    fprintf(stderr, "Error: %s", err);
+    close(fd);
+    return EXIT_FAILURE;
+  }
 
   // On génère le socket et on le connecte
   int sockfd = create_socket(NULL, -1, &addr, port);

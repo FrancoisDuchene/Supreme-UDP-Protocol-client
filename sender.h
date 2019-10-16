@@ -12,6 +12,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <stddef.h> /* size_t */
 
@@ -23,8 +25,6 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
-
-#include "general.h"
 
 int main (int argc, char **argv);
 

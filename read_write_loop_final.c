@@ -12,7 +12,7 @@ general_status_code read_write_loop(int sfd) {
 	char *buf = (char *) malloc(1024*sizeof(char));
 	if(buf == NULL) {
 		perror("Erreur malloc read_write_loop");
-		return E_NOMEM;
+		return E_NOMEMORY;
 	}
 
 	int eof_stdin = 1;
@@ -42,63 +42,67 @@ general_status_code read_write_loop(int sfd) {
 			free_loop_res(buf, pkt_actu);
 			return E_TIMEOUT;
 		} else {
-				if (ufds[0].revents & POLLIN && eof_stdin) {
-            // On lit sur l'input et on l'envoie
-            size_t readLen = read(STDIN_FILENO, buf, sizeof(buf));
+			if (ufds[0].revents & POLLIN && eof_stdin) {
+				// On lit sur l'input et on l'envoie
+				size_t readLen = read(STDIN_FILENO, buf, sizeof(buf));
 
-            pkt_actu = pkt_new();
-            if(pkt_actu == NULL){
-                print("Erreur allocation du paquet \n");
-								free_loop_res(buf, pkt_actu);
-                return E_NOMEM;
-            }
-
-            // char *new_buf = (char *) malloc(readLen);
-            // if(new_buf == NULL) {
-            //     perror("Erreur malloc new_buf read_write_loop");
-						// 		free_loop_res(buf, pkt_actu);
-            //     return E_NOMEM;
-            // }
-
-            status = pkt_encode(pkt_actu,buf,readLen);
-            if(status != PKT_OK ){
-                print("Erreur lors du encode de type : %u\n",status);
-								free_loop_res(buf, pkt_actu);
-                return E_ENCODE;
-            }
-
-						readLen = send(sfd, (void *) pkt_actu, readLen, 0);
-						if(readLen == 0) {
-							eof_stdin = 0;
-						}
-
+				pkt_actu = pkt_new();
+				if(pkt_actu == NULL){
+					print("Erreur allocation du paquet \n");
+									free_loop_res(buf, pkt_actu);
+					return E_NOMEMORY;
 				}
 
-				if (ufds[1].revents & POLLIN && eof_sfd) {
-					// On reçoit un message et on l'affiche
-					size_t readLen = recv(sfd, (void *) buf, 1024, 0);
+				// char *new_buf = (char *) malloc(readLen);
+				// if(new_buf == NULL) {
+				//     perror("Erreur malloc new_buf read_write_loop");
+							// 		free_loop_res(buf, pkt_actu);
+				//     return E_NOMEMORY;
+				// }
 
-          pkt_actu = pkt_new();
-          if(pkt_actu == NULL){
-              print("Erreur allocation du paquet \n");
-							free_loop_res(buf, pkt_actu);
-              return E_NOMEM;
-          }
-
-          status = pkt_decode(buf,readLen,pkt_actu);
-          if(status != 0 ) {
-              print("Erreur lors du decode de type : %u\n",status);
-							free_loop_res(buf, pkt_actu);
-              return E_DECODE;
-          }
-
-					readLen = write(STDOUT_FILENO, (void *) buf, readLen);
-					if(!readLen)
-						eof_sfd = 0;
+				status = pkt_encode(pkt_actu,buf,readLen);
+				if(status != PKT_OK ){
+					print("Erreur lors du encode de type : %u\n",status);
+									free_loop_res(buf, pkt_actu);
+					return E_ENCODE;
 				}
+
+				readLen = send(sfd, (void *) pkt_actu, readLen, 0);
+				if(readLen == 0) {
+					eof_stdin = 0;
+				}
+
+			}
+
+			if (ufds[1].revents & POLLIN && eof_sfd) {
+				// On reçoit un message et on l'affiche
+				size_t readLen = recv(sfd, (void *) buf, 1024, 0);
+
+				pkt_actu = pkt_new();
+				if(pkt_actu == NULL){
+					print("Erreur allocation du paquet \n");
+									free_loop_res(buf, pkt_actu);
+					return E_NOMEM;
+				}
+
+				status = pkt_decode(buf,readLen,pkt_actu);
+				if(status != 0 ) {
+					print("Erreur lors du decode de type : %u\n",status);
+									free_loop_res(buf, pkt_actu);
+					return E_DECODE;
+				}
+
+				readLen = write(STDOUT_FILENO, (void *) buf, readLen);
+				if(!readLen)
+					eof_sfd = 0;
+			}
 		}
-  }
+  	}
 	free_loop_res(buf, pkt_actu);
+	return OK;
+}
+
+general_status_code nack_received(pkt_t *pkt) {
 	return OK;
 }
 
