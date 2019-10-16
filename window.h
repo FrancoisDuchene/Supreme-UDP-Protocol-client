@@ -14,4 +14,10 @@
  */
 bool is_in_window(uint8_t cur_debut, uint8_t cur_fin, uint8_t seqnum);
 
+/* Fonction permettant de redimensionner la taille de la window active
+ * Modifie curHi ainsi que les cases de la window concernées
+ * Print erreur si le seqnum, curLow et curHi n'ont pas de valeurs cohérentes 
+ */
+void changeWindow(int seqnum,int *curLow,int *curHi,bool * curWindow);
+
 #endif
