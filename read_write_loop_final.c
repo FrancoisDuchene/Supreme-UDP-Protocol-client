@@ -1,6 +1,11 @@
 #include "read_write_loop_final.h"
 #include "packet_interface.h"
 
+
+int curLow = 0;
+int curHi = 1;
+int curWindow [256]; 
+
 /* Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
  * @sfd: The socket file descriptor. It is both bound and connected.
@@ -97,23 +102,38 @@ general_status_code read_write_loop(int sfd) {
 					return E_DECODE;
 				}
 
-				int type = pkt_get_type ;
+				int type = pkt_get_type(pkt_actu) ;
 
 				if (type ==  PTYPE_DATA){
-					print("Lol mais on est pas un receiver ici, vous êtes toctoc, fufu \n");
+					print("Lol mais n'on est pas un receiver ici, vous êtes toctoc, fufu \n");
 				} else if (type == PTYPE_ACK) {
-					pkt_Ack();
+
+					int tr = pkt_get_tr(pkt_actu) ;
+
+					if (tr == 0){
+
+						int seqnum = pkt_get_seqnum(pkt_actu);
+						pkt_Ack(seqnum);
+					
+						//int window = pkt_get_window(pkt_actu);
+						//fonction pour modifier la window (window);
+					}
+					
 				} else if(type == PTYPE_NACK) {
-					pkt_Nack();
+
+					int tr = pkt_get_tr(pkt_actu) ;
+
+					if (tr == 0){
+
+						int seqnum = pkt_get_seqnum(pkt_actu);
+						pkt_Nack(seqnum);
+
+					}
+
 				} else {
 					print("Ce type est inconnu au bataillon \n");
 				}
 
-
-
-				readLen = write(STDOUT_FILENO, (void *) buf, readLen);
-				if(!readLen)
-					eof_sfd = 0;
 			}
 		}
   	}
@@ -127,10 +147,55 @@ general_status_code free_loop_res(char *buffer, pkt_t *pkt) {
 	return OK;
 }
 
-void pkt_Ack() {
-	return;
+void pkt_Ack(int seqnum) {
+
+	if (curLow < curHi){
+		if (seqnum > curLow && seqnum < curHi) {
+			int diff = seqnum - curLow;
+			curLow = (curLow + diff) %256;
+			curHi = (curHi + diff) %256;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+	} else {
+
+		if ( (seqnum > curLow && seqnum < 256) || (seqnum < curHi && seqnum >= 0) ) {
+			int diff;
+			if (seqnum < 256){
+				diff = seqnum - curLow;
+			} else {
+				diff = 256 - curLow + seqnum;
+			}
+			curLow = (curLow + diff) %256 ;
+			curHi = (curHi + diff) %256;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+
+	}
+
 }
 
-void pkt_Nack() {
-	return;
+void pkt_Nack(int seqnum) {
+	if (curLow < curHi){
+		if (seqnum > curLow && seqnum < curHi) {
+			printf("Numero de seqnum valide mais je sais pas ce qu'on va en faire pour l'instant");
+			return;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+	} else {
+
+		if ( (seqnum > curLow && seqnum < 256) || (seqnum < curHi && seqnum >= 0) ) {
+			printf("Numero de seqnum valide mais je sais pas ce qu'on va en faire pour l'instant");
+			return;
+		} else {
+			printf("Numero de seqnum invalide");
+			return;
+		}	
+
+	}
 }
