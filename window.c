@@ -19,10 +19,10 @@ general_status_code update_seqnum(uint8_t *old_seqnum) {
   return OK;
 }
 
-void changeWindow(int window,int * curLow,int *curHi,bool * curWindow) {
-  *curWindow = *curWindow;
+void changeWindow(int window, int * curLow, int *curHi, bool * curWindow) {
+
   //Gestion des erreurs 
-  if(*curLow < 0 || *curLow > 255 || *curHi< 0 || *curHi > 255 || window < 0 || window > 255){
+  if(*curLow < 0 || *curLow > 255 || *curHi < 0 || *curHi > 255 || window < 0 || window > 255){
     printf("Erreur d'indice ");
     return;
   }
@@ -35,24 +35,20 @@ void changeWindow(int window,int * curLow,int *curHi,bool * curWindow) {
     diff = *curLow - *curHi ;
   }
   
-  int diff2;
   //Si on doit augmenter la fenêtre
   if(window > diff){
-    diff2 = window - diff;
+    int diff2 = window - diff;
     for(int i = 0;i<diff2;i++){
-      curWindow[*curHi] = false;
-      *curHi = (*curHi + 1) %256;
+      *curHi = (*curHi + 1) %256; //Augmentation de curHi, si >255 revient à 0
     }
 
   //Si on doit diminuer la fenêtre    
   } else {
-    diff2 = diff - window;
+    int diff2 = diff - window;
     for(int i = 0;i<diff2;i++){
       curWindow[*curHi] = false;
-      *curHi = (*curHi - 1) %256;
-      
+      *curHi = ((*curHi - 1) + 256) %256; //Augmentation de curHi, si <0 revient à 255
     }
-
 	}
-
+  
 }

@@ -31,8 +31,15 @@ general_status_code read_write_loop(const int sfd);
  */
 general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *curHi, bool* curWindow);
 
+/* Fonction gérant la réception de acks
+ * Deplace les indices de la fenêtre active en fonction du seqnum reçu
+ * Return erreur si seqnum invalide 
+ */
 general_status_code pkt_Ack(int seqnum,int * curLow,int *curHi,bool* curWindow);
 
+/* Fonction gérant la réception de nacks
+ * Return erreur si seqnum invalide 
+ */
 general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi,bool * curWindow);
 
 #endif
