@@ -31,7 +31,6 @@ general_status_code read_write_loop(int sfd) {
 	}
 
 	// Variables utilisees durant l'exécution
-	pkt_status_code pkt_status;
 	char *buf = (char *) malloc(1024*sizeof(char));
 	if(buf == NULL) {
 		perror("Erreur malloc read_write_loop");
@@ -41,9 +40,20 @@ general_status_code read_write_loop(int sfd) {
 	int eof_stdin = 1;
 	int eof_sfd = 1;
 	int status;
-	pkt_t *pkt_actu = NULL;
-	uint8_t actual_seqnum = 0;
-
+	pkt_status_code pkt_status;
+	general_status_code gen_status;
+	pkt_t *pkt_actu = pkt_new();
+	if(pkt_actu == NULL) {
+		fprintf(stderr, "Erreur allocation du paquet \n");
+		free_loop_res(buf, pkt_actu, curLow, curHi, curWindow);
+		return E_NOMEMORY;
+	}
+	uint8_t *actual_seqnum = (uint8_t*) malloc(sizeof (uint8_t));
+	if(actual_seqnum == NULL) {
+		perror("Erreur malloc read_write_loop");
+		return E_NOMEMORY;
+	}
+	*actual_seqnum = 0;
 	/* Variables lié à POLL */
 	struct pollfd ufds[2];
 	// Le clavier
@@ -70,23 +80,22 @@ general_status_code read_write_loop(int sfd) {
 				// On lit sur l'input et on l'envoie
 				size_t readLen = read(STDIN_FILENO, buf, sizeof(buf));
 
-				pkt_actu = pkt_new();
-				if(pkt_actu == NULL){
-					printf("Erreur allocation du paquet \n");
-					free_loop_res(buf, pkt_actu,curLow,curHi,curWindow);
-					return E_NOMEMORY;
+				gen_status = update_seqnum(actual_seqnum);
+				if(gen_status != OK) {
+					printf("oh mince");
 				}
-
-				actual_seqnum++;
+				//TODO changer la valeur de window
+				
+				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf, readLen);
 
 				pkt_status = pkt_encode(pkt_actu,buf, &readLen);
 				if(pkt_status != PKT_OK ){
-					printf("Erreur lors du encode de type : %u\n",pkt_status);
-					free_loop_res(buf, pkt_actu,curLow,curHi,curWindow);
+					printf("Erreur lors du encode de type : %u\n", pkt_status);
+					free_loop_res(buf, pkt_actu, curLow, curHi, curWindow);
 					return E_ENCODE;
 				}
 
-				readLen = send(sfd, (void *) pkt_actu, readLen, 0);
+				readLen = send(sfd, (void *) buf, readLen, 0);
 				if(readLen == 0) {
 					eof_stdin = 0;
 				}

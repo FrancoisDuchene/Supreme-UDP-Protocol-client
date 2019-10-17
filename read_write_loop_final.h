@@ -14,6 +14,7 @@
 #include "general.h"
 #include "packet_interface.h"
 #include "window.h"
+#include "pkt_builder.h"
 
 #define TIMEOUT -1
 

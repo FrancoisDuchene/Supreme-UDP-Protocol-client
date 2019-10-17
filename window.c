@@ -14,17 +14,11 @@ bool is_in_window(uint8_t cur_debut, uint8_t cur_fin, uint8_t seqnum) {
   }
 }
 
-general_status_code update_seqnum(pkt_t *pkt, uint8_t old_seqnum) {
-  if(old_seqnum == 255) {
-    old_seqnum = 0; 
-  } else {
-    old_seqnum++;
-  }
-  if(pkt_set_seqnum(pkt, old_seqnum) != PKT_OK) {
-    return E_SEQNUM_GEN;
-  }
+general_status_code update_seqnum(uint8_t *old_seqnum) {
+  *old_seqnum = (*old_seqnum + 1)%256;
   return OK;
 }
+
 void changeWindow(int window,int * curLow,int *curHi,bool * curWindow) {
   *curWindow = *curWindow;
   //Gestion des erreurs 
