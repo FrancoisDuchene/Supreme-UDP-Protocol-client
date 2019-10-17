@@ -2,16 +2,41 @@
 #include "packet_interface.h"
 
 
-int curLow = 0;
-int curHi = 1;
-int curWindow [256]; 
-
 /* Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
 general_status_code read_write_loop(int sfd) {
+
+	//La table window et ses indices
+	int * curLow = malloc(sizeof(int));
+	if (curLow == NULL){
+		perror("Erreur malloc indice1");
+		return E_NOMEMORY;
+	}
+	*curLow = 0;
+
+	int * curHi = malloc(sizeof(int));;
+	if (curHi == NULL){
+		perror("Erreur malloc indice2");
+		return E_NOMEMORY;
+	}
+	*curHi = 1;
+
+	int * curWindowSize = malloc(sizeof(int));;
+	if (curWindowSize == NULL){
+		perror("Erreur malloc indice3");
+		return E_NOMEMORY;
+	}
+	*curWindowSize = 1;
+
+	bool * curWindow = calloc(sizeof(bool)*256,0); 
+	if (curHi == NULL){
+		perror("Erreur calloc window");
+		return E_NOMEMORY;
+	}
+
 	// Variables utilisees durant l'exécution
 	pkt_status_code pkt_status;
 	char *buf = (char *) malloc(1024*sizeof(char));
@@ -41,11 +66,11 @@ general_status_code read_write_loop(int sfd) {
 
 		if(status < 0) {
 			perror("An error has occured with poll");
-			free_loop_res(buf, pkt_actu);
+			free_loop_res(buf, pkt_actu,curLow,curHi,curWindow,curWindowSize);
 			return E_POLL;
 		} else if (status == 0) {
 			fprintf(stderr, "Timeout has occured ! No data transfered after %d seconds\n", TIMEOUT);
-			free_loop_res(buf, pkt_actu);
+			free_loop_res(buf, pkt_actu,curLow,curHi,curWindow,curWindowSize);
 			return E_TIMEOUT;
 		} else {
 			if (ufds[0].revents & POLLIN && eof_stdin) {
@@ -55,15 +80,15 @@ general_status_code read_write_loop(int sfd) {
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
 					printf("Erreur allocation du paquet \n");
-									free_loop_res(buf, pkt_actu);
+					free_loop_res(buf, pkt_actu,curLow,curHi,curWindow,curWindowSize);
 					return E_NOMEMORY;
 				}
 
 
-				pkt_status = pkt_encode(pkt_actu,buf,&readLen);
-				if(pkt_status != PKT_OK ){
-					printf("Erreur lors du encode de type : %u\n",pkt_status);
-									free_loop_res(buf, pkt_actu);
+				status = pkt_encode(pkt_actu,buf,readLen);
+				if(status != PKT_OK ){
+					printf("Erreur lors du encode de type : %u\n",status);
+					free_loop_res(buf, pkt_actu,curLow,curHi,curWindow,curWindowSize);
 					return E_ENCODE;
 				}
 
@@ -81,42 +106,49 @@ general_status_code read_write_loop(int sfd) {
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
 					printf("Erreur allocation du paquet \n");
-					free_loop_res(buf, pkt_actu);
+					free_loop_res(buf, pkt_actu,curLow,curHi,curWindow,curWindowSize);
 					return E_NOMEMORY;
 				}
 
-				pkt_status = pkt_decode(buf,readLen,pkt_actu);
-				if(pkt_status != 0 ) {
-					printf("Erreur lors du decode de type : %u\n",pkt_status);
-					free_loop_res(buf, pkt_actu);
+				status = pkt_decode(buf,readLen,pkt_actu);
+				if(status != 0 ) {
+					printf("Erreur lors du decode de type : %u\n",status);
+					free_loop_res(buf, pkt_actu,curLow,curHi,curWindow,curWindowSize);
 					return E_DECODE;
 				}
 
 				int type = pkt_get_type(pkt_actu) ;
 
+				//Verification du type de paquet 
 				if (type ==  PTYPE_DATA){
 					printf("Lol mais n'on est pas un receiver ici, vous êtes toctoc, fufu \n");
 				} else if (type == PTYPE_ACK) {
 
+					//vérification si tr valide
 					int tr = pkt_get_tr(pkt_actu) ;
-
 					if (tr == 0){
 
+						//Appel de la méthode pour modifier les indices de la window en fonctions des acks reçus
 						int seqnum = pkt_get_seqnum(pkt_actu);
-						pkt_Ack(seqnum);
-					
-						//int window = pkt_get_window(pkt_actu);
-						//fonction pour modifier la window (window);
+						pkt_Ack(seqnum,curLow,curHi,curWindow);
+
+						//Changement éventuel de la taille de la window
+						int window = pkt_get_window(pkt_actu);
+						if(window != *curWindowSize){
+							changeWindow(window,curLow,curHi,curWindow);
+							curWindowSize = window;
+						}
+						
 					}
 					
 				} else if(type == PTYPE_NACK) {
 
 					int tr = pkt_get_tr(pkt_actu) ;
-
 					if (tr == 0){
 
+						//Appel de la méthode gérant les nacks
 						int seqnum = pkt_get_seqnum(pkt_actu);
-						pkt_Nack(seqnum);
+						pkt_Nack(seqnum,curLow,curHi,curWindow);
 
 					}
 
@@ -127,38 +159,52 @@ general_status_code read_write_loop(int sfd) {
 			}
 		}
   	}
-	free_loop_res(buf, pkt_actu);
+	free_loop_res(buf, pkt_actu,curLow,curHi,curWindow,curWindowSize);
 	return OK;
 }
 
-general_status_code free_loop_res(char *buffer, pkt_t *pkt) {
+general_status_code nack_received(pkt_t *pkt) {
+	return OK;
+}
+
+general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *curHi, bool* curWindow, int * curWindowSize) {
 	if(buffer != NULL) free(buffer);
 	if(pkt != NULL) pkt_del(pkt);
+	if(curLow != NULL) free(curLow);
+	if(curHi != NULL) free(curHi);
+	if(curWindow != NULL) free(curWindow);
+	if(curWindowSize != NULL) free(curWindowSize);
 	return OK;
 }
 
-void pkt_Ack(int seqnum) {
+general_status_code pkt_Ack(int seqnum,int * curLow,int *curHi,bool* curWindow) {
 
-	if (curLow < curHi){
-		if (seqnum > curLow && seqnum < curHi) {
-			int diff = seqnum - curLow;
-			curLow = (curLow + diff) %256;
-			curHi = (curHi + diff) %256;
+	if (*curLow < *curHi){
+		if (seqnum > *curLow && seqnum < *curHi) {
+			int diff = seqnum - *curLow;
+			for(int i = *curLow ; i < seqnum; i++){
+				curWindow[i] = false;
+			}
+			*curLow = (*curLow + diff) %256;
+			*curHi = (*curHi + diff) %256;
 		} else {
 			printf("Numero de seqnum invalide");
 			return;
 		}	
 	} else {
 
-		if ( (seqnum > curLow && seqnum < 256) || (seqnum < curHi && seqnum >= 0) ) {
+		if ( (seqnum > *curLow && seqnum < 256) || (seqnum < *curHi && seqnum >= 0) ) {
 			int diff;
 			if (seqnum < 256){
-				diff = seqnum - curLow;
+				diff = seqnum - *curLow;
 			} else {
-				diff = 256 - curLow + seqnum;
+				diff = 256 - *curLow + seqnum;
 			}
-			curLow = (curLow + diff) %256 ;
-			curHi = (curHi + diff) %256;
+			for(int i = *curLow ; i != seqnum; i = (i+1)%256 ){
+					curWindow[i] = 0;
+			}
+			*curLow = (*curLow + diff) %256 ;
+			*curHi = (*curHi + diff) %256;
 		} else {
 			printf("Numero de seqnum invalide");
 			return;
@@ -168,10 +214,11 @@ void pkt_Ack(int seqnum) {
 
 }
 
-void pkt_Nack(int seqnum) {
-	if (curLow < curHi){
-		if (seqnum > curLow && seqnum < curHi) {
-			printf("Numero de seqnum valide mais je sais pas ce qu'on va en faire pour l'instant");
+general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi,bool * curWindow) {
+
+	if (*curLow < *curHi){
+		if (seqnum > *curLow && seqnum < *curHi) {
+			printf("Numero de seqnum valide, mais osef");
 			return;
 		} else {
 			printf("Numero de seqnum invalide");
@@ -179,8 +226,8 @@ void pkt_Nack(int seqnum) {
 		}	
 	} else {
 
-		if ( (seqnum > curLow && seqnum < 256) || (seqnum < curHi && seqnum >= 0) ) {
-			printf("Numero de seqnum valide mais je sais pas ce qu'on va en faire pour l'instant");
+		if ( (seqnum > *curLow && seqnum < 256) || (seqnum < *curHi && seqnum >= 0) ) {
+			printf("Numero de seqnum valide, mais osef");
 			return;
 		} else {
 			printf("Numero de seqnum invalide");
