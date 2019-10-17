@@ -166,58 +166,73 @@ general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *c
 	return OK;
 }
 
+
 general_status_code pkt_Ack(int seqnum,int * curLow,int *curHi,bool* curWindow) {
 
+	//Si le seqnum a une valeur invalide
+	if (seqnum < 0 || seqnum > 255) {
+		printf("Numero de seqnum invalide");
+		return E_SEQNUM_GEN;
+	} 
+
+	//Cas 1: l'indice de début de window est plus petit que l'indice de fin de window
 	if (*curLow < *curHi){
-		if (seqnum > *curLow && seqnum < *curHi) {
-			int diff = seqnum - *curLow;
-			for(int i = *curLow ; i < seqnum; i++){
-				curWindow[i] = false;
-			}
-			*curLow = (*curLow + diff) %256;
-			*curHi = (*curHi + diff) %256;
-		} else {
+
+		//Si le seqnum a une valeur invalide
+		if (seqnum < *curLow || seqnum > *curHi) {
 			printf("Numero de seqnum invalide");
 			return E_SEQNUM_GEN;
-		}	
+		} 
+	//Cas 2: l'indice de début de window est plus grand que l'indice de fin de window (curHi a dépassé 255 et a donc repris au début)
 	} else {
 
-		if ( (seqnum > *curLow && seqnum < 256) || (seqnum < *curHi && seqnum >= 0) ) {
-			int diff;
-			if (seqnum < 256){
-				diff = seqnum - *curLow;
-			} else {
-				diff = 256 - *curLow + seqnum;
-			}
-			for(int i = *curLow ; i != seqnum; i = (i+1)%256 ){
-					curWindow[i] = 0;
-			}
-			*curLow = (*curLow + diff) %256 ;
-			*curHi = (*curHi + diff) %256;
-		} else {
+		//Si le seqnum a une valeur invalide
+		if (seqnum < *curLow && seqnum > *curHi) {
 			printf("Numero de seqnum invalide");
 			return E_SEQNUM_GEN;
-		}	
-
+		} 
 	}
+
+	//Déplacement des indices de la window
+	while(*curLow != seqnum){
+		curWindow[*curLow] = false;
+      	*curLow = (*curLow + 1) %256;
+		*curHi = (*curHi + 1) %256;
+	}
+
 	return OK;
 }
 
+
 general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, bool * curWindow) {
 	*curWindow = *curWindow;
+	//Si le seqnum a une valeur invalide
+	if (seqnum < 0 || seqnum > 255) {
+		printf("Numero de seqnum invalide");
+		return E_SEQNUM_GEN;
+	} 
+
+	//Cas 1: l'indice de début de window est plus petit que l'indice de fin de window
 	if (*curLow < *curHi){
+
+		//Si le seqnum a une valeur valide
 		if (seqnum > *curLow && seqnum < *curHi) {
 			printf("Numero de seqnum valide, mais osef");
-			return OK;
+
+		//Si le seqnum a une valeur invalide
 		} else {
 			printf("Numero de seqnum invalide");
 			return E_SEQNUM_GEN;
 		}	
+
+	//Cas 2: l'indice de début de window est plus grand que l'indice de fin de window (curHi a dépassé 255 et a donc repris au début)
 	} else {
 
+		//Si le seqnum a une valeur valide
 		if ( (seqnum > *curLow && seqnum < 256) || (seqnum < *curHi && seqnum >= 0) ) {
 			printf("Numero de seqnum valide, mais osef");
-			return OK;
+
+		//Si le seqnum a une valeur invalide
 		} else {
 			printf("Numero de seqnum invalide");
 			return E_SEQNUM_GEN;
