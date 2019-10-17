@@ -11,6 +11,7 @@
 #include <sys/types.h>
 
 #include "general.h"
+#include "packet_interface.h"
 
 #define TIMEOUT -1
 
@@ -22,15 +23,13 @@
  */
 general_status_code read_write_loop(const int sfd);
 
-/*
- * Fonction appellée lorsqu'un NACK a été reçu
- * 
- */
-general_status_code nack_received(pkt_t *pkt);
-
 /* Libère les ressources allouées. Les arguments peuvent être égal à nul.
  * Cette fonction doit être appellée avant chaque return à la fonction principale
  */
 general_status_code free_loop_res(char *buffer, pkt_t *pkt);
+
+void pkt_Ack(int seqnum);
+
+void pkt_Nack(int seqnum);
 
 #endif

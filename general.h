@@ -8,6 +8,7 @@ typedef enum {
   E_TIMEOUT,  // Erreur de timeout, pas de connexion
   E_DECODE,   // Erreur lié au décodage du paquet reçu, erreur fatale ne pouvant être résolue
   E_ENCODE,   // Erreur lié à l'encodage du paquet envoyé, erreur fatale ne pouvant être résolue
+  E_UPDATESEQNUM, // Erreur lié au seqnum du paquet
 } general_status_code;
 
 #endif

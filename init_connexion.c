@@ -1,6 +1,6 @@
 #include "init_connexion.h"
 
-const char * real_address(const char *address, struct sockaddr_in6 *rval) {
+char * real_address(const char *address, struct sockaddr_in6 *rval) {
 	struct addrinfo hints, *res, *addr;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET6;
@@ -11,7 +11,8 @@ const char * real_address(const char *address, struct sockaddr_in6 *rval) {
 	int status = getaddrinfo(address, NULL, &hints, &res);
 
 	if(status != 0 ){
-		return gai_strerror(status);
+		gai_strerror(status);
+		return "Fatal error";
 	}
 
 	for (addr = res; addr != NULL; addr = addr->ai_next)

@@ -13,7 +13,7 @@ int curWindow [256];
  */
 general_status_code read_write_loop(int sfd) {
 	// Variables utilisees durant l'exécution
-	pkt_status_code status;
+	pkt_status_code pkt_status;
 	char *buf = (char *) malloc(1024*sizeof(char));
 	if(buf == NULL) {
 		perror("Erreur malloc read_write_loop");
@@ -24,6 +24,7 @@ general_status_code read_write_loop(int sfd) {
 	int eof_sfd = 1;
 	int status;
 	pkt_t *pkt_actu = NULL;
+	uint8_t actual_seqnum = 0;
 
 	/* Variables lié à POLL */
 	struct pollfd ufds[2];
@@ -53,21 +54,15 @@ general_status_code read_write_loop(int sfd) {
 
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
-					print("Erreur allocation du paquet \n");
+					printf("Erreur allocation du paquet \n");
 									free_loop_res(buf, pkt_actu);
 					return E_NOMEMORY;
 				}
 
-				// char *new_buf = (char *) malloc(readLen);
-				// if(new_buf == NULL) {
-				//     perror("Erreur malloc new_buf read_write_loop");
-							// 		free_loop_res(buf, pkt_actu);
-				//     return E_NOMEMORY;
-				// }
 
-				status = pkt_encode(pkt_actu,buf,readLen);
-				if(status != PKT_OK ){
-					print("Erreur lors du encode de type : %u\n",status);
+				pkt_status = pkt_encode(pkt_actu,buf,&readLen);
+				if(pkt_status != PKT_OK ){
+					printf("Erreur lors du encode de type : %u\n",pkt_status);
 									free_loop_res(buf, pkt_actu);
 					return E_ENCODE;
 				}
@@ -85,14 +80,14 @@ general_status_code read_write_loop(int sfd) {
 
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
-					print("Erreur allocation du paquet \n");
+					printf("Erreur allocation du paquet \n");
 					free_loop_res(buf, pkt_actu);
 					return E_NOMEMORY;
 				}
 
-				status = pkt_decode(buf,readLen,pkt_actu);
-				if(status != 0 ) {
-					print("Erreur lors du decode de type : %u\n",status);
+				pkt_status = pkt_decode(buf,readLen,pkt_actu);
+				if(pkt_status != 0 ) {
+					printf("Erreur lors du decode de type : %u\n",pkt_status);
 					free_loop_res(buf, pkt_actu);
 					return E_DECODE;
 				}
@@ -100,7 +95,7 @@ general_status_code read_write_loop(int sfd) {
 				int type = pkt_get_type(pkt_actu) ;
 
 				if (type ==  PTYPE_DATA){
-					print("Lol mais n'on est pas un receiver ici, vous êtes toctoc, fufu \n");
+					printf("Lol mais n'on est pas un receiver ici, vous êtes toctoc, fufu \n");
 				} else if (type == PTYPE_ACK) {
 
 					int tr = pkt_get_tr(pkt_actu) ;
@@ -126,17 +121,13 @@ general_status_code read_write_loop(int sfd) {
 					}
 
 				} else {
-					print("Ce type est inconnu au bataillon \n");
+					printf("Ce type est inconnu au bataillon \n");
 				}
 
 			}
 		}
   	}
 	free_loop_res(buf, pkt_actu);
-	return OK;
-}
-
-general_status_code nack_received(pkt_t *pkt) {
 	return OK;
 }
 

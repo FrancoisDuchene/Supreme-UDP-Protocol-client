@@ -7,8 +7,8 @@ CFLAGS += -Wextra # Enable additional warnings
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2 # Add canary code, i.e. detect buffer overflows
 CFLAGS += -fstack-protector-all # Add canary code to detect stack smashing
 CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for getpot and getaddrinfo
-HFILES = packet_interface.h sender.h
-COMMONCFILES = packet_implem.c sender.c
+HFILES = packet_interface.h sender.h general.h init_connexion.h read_write_loop_final.h window.h
+COMMONCFILES = packet_implem.c sender.c init_connexion.c read_write_loop_final.c utils.c window.c
 TESTFILES = test/test_main.c test/test.h test/format_tests.c
 
 .SILENT:

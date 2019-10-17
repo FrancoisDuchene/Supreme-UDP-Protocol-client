@@ -1,3 +1,5 @@
+#include "utils.h"
+
 void print_pkt_osef(pkt_t* pkt, bool print_payload) {
   bool payload_is_empty = false;
   // On load en cache tous les paramètres
