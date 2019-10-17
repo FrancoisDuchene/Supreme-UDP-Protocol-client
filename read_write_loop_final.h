@@ -13,6 +13,7 @@
 
 #include "general.h"
 #include "packet_interface.h"
+#include "window.h"
 
 #define TIMEOUT -1
 
@@ -27,10 +28,10 @@ general_status_code read_write_loop(const int sfd);
 /* Libère les ressources allouées. Les arguments peuvent être égal à nul.
  * Cette fonction doit être appellée avant chaque return à la fonction principale
  */
-general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *curHi, bool* curWindow, int * curWindowSize);
+general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *curHi, bool* curWindow);
 
-void pkt_Ack(int seqnum);
+general_status_code pkt_Ack(int seqnum,int * curLow,int *curHi,bool* curWindow);
 
-void pkt_Nack(int seqnum);
+general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi,bool * curWindow);
 
 #endif
