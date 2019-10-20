@@ -19,10 +19,10 @@ general_status_code update_seqnum(uint8_t *old_seqnum) {
   return OK;
 }
 
-void changeWindow(int window, int * curLow, int *curHi, bool * curWindow) {
+void changeWindow(int window, int * curLow, int *curHi) {
 
   //Gestion des erreurs 
-  if(*curLow < 0 || *curLow > 255 || *curHi < 0 || *curHi > 255 || window < 0 || window > 255){
+  if(*curLow < 0 || *curLow > 255 || *curHi < 0 || *curHi > 255 || window < 0 || window > 31){
     printf("Erreur d'indice ");
     return;
   }
@@ -46,7 +46,6 @@ void changeWindow(int window, int * curLow, int *curHi, bool * curWindow) {
   } else {
     int diff2 = diff - window;
     for(int i = 0;i<diff2;i++){
-      curWindow[*curHi] = false;
       *curHi = ((*curHi - 1) + 256) %256; //Augmentation de curHi, si <0 revient à 255
     }
 	}

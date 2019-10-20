@@ -9,6 +9,7 @@ typedef enum {
   E_DECODE,   // Erreur lié au décodage du paquet reçu, erreur fatale ne pouvant être résolue
   E_ENCODE,   // Erreur lié à l'encodage du paquet envoyé, erreur fatale ne pouvant être résolue
   E_SEQNUM_GEN, // Erreur lié au seqnum du paquet
+  E_INCOHERENT, // Erreur d'incohérence
 } general_status_code;
 
 #endif

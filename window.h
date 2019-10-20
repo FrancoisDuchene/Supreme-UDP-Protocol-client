@@ -23,6 +23,6 @@ general_status_code update_seqnum(uint8_t *old_seqnum);
  * Modifie curHi ainsi que les cases de la window concernées
  * Print erreur si le seqnum, curLow et curHi n'ont pas de valeurs cohérentes 
  */
-void changeWindow(int seqnum,int *curLow,int *curHi,bool * curWindow);
+void changeWindow(int seqnum,int *curLow,int *curHi);
 
 #endif
