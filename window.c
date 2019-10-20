@@ -15,7 +15,7 @@ bool is_in_window(uint8_t cur_debut, uint8_t cur_fin, uint8_t seqnum) {
 }
 
 general_status_code update_seqnum(uint8_t *old_seqnum) {
-  *old_seqnum = (*old_seqnum + 1)%256;
+  *old_seqnum = (*old_seqnum + 1) % 256;
   return OK;
 }
 

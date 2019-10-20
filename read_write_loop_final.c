@@ -8,14 +8,14 @@
 general_status_code read_write_loop(int sfd) {
 
 	//La table window et ses indices
-	int * curLow = malloc(sizeof(int));
+	int * curLow = (int *) malloc(sizeof(int));
 	if (curLow == NULL){
 		perror("Erreur malloc indice1");
 		return E_NOMEMORY;
 	}
 	*curLow = 0;
 
-	int * curHi = malloc(sizeof(int));;
+	int * curHi = (int *) malloc(sizeof(int));;
 	if (curHi == NULL){
 		perror("Erreur malloc indice2");
 		return E_NOMEMORY;
@@ -24,7 +24,7 @@ general_status_code read_write_loop(int sfd) {
 
 	int curWindowSize = 1;
 
-	bool * curWindow = calloc(sizeof(bool)*256,0); 
+	bool * curWindow = calloc(sizeof(bool)*256, 0); 
 	if (curHi == NULL){
 		perror("Erreur calloc window");
 		return E_NOMEMORY;
@@ -78,7 +78,10 @@ general_status_code read_write_loop(int sfd) {
 		} else {
 			if (ufds[0].revents & POLLIN && eof_stdin) {
 				// On lit sur l'input et on l'envoie
-				size_t readLen = read(STDIN_FILENO, buf, sizeof(buf));
+				size_t *readLen = (size_t *) malloc(sizeof(size_t));
+				if(readLen == NULL) return E_NOMEMORY;
+				
+				*readLen = read(STDIN_FILENO, buf, sizeof(buf));
 
 				gen_status = update_seqnum(actual_seqnum);
 				if(gen_status != OK) {
@@ -86,25 +89,30 @@ general_status_code read_write_loop(int sfd) {
 				}
 				//TODO changer la valeur de window
 				
-				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf, readLen);
+				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf, *readLen);
 
-				pkt_status = pkt_encode(pkt_actu,buf, &readLen);
+
+				pkt_status = pkt_encode(pkt_actu,buf, readLen);
 				if(pkt_status != PKT_OK ){
 					printf("Erreur lors du encode de type : %u\n", pkt_status);
 					free_loop_res(buf, pkt_actu, curLow, curHi, curWindow);
 					return E_ENCODE;
 				}
 
-				readLen = send(sfd, (void *) buf, readLen, 0);
-				if(readLen == 0) {
+				*readLen = send(sfd, (void *) buf, *readLen, 0);
+				if(*readLen == 0) {
 					eof_stdin = 0;
 				}
-
+				fprintf(stderr, "readLen : %zu\n", *readLen);
+				free(readLen);
 			}
 
 			if (ufds[1].revents & POLLIN && eof_sfd) {
+				//TODO gérer le EOF reçu (end of connexion)
 				// On reçoit un message et on l'affiche
 				size_t readLen = recv(sfd, (void *) buf, 1024, 0);
+
+				fprintf(stderr, "Reçu %zu bytes !", readLen);
 
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){

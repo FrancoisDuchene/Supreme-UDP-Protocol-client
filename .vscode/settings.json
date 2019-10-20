@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "packet_interface.h": "c",
+        "init_connexion.h": "c",
+        "read_write_loop_final.h": "c"
+    }
+}

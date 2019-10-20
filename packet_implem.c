@@ -212,8 +212,8 @@ pkt_status_code pkt_encode(const pkt_t* pkt, char *buf, size_t *len) {
     return PKT_OK;
   }
   //Check if buf is big enough
-  if(*len < (size_t) size+12) {
-    return E_NOMEM;
+  if(*len > (size_t) size+10+lengthOfLength) {
+    return E_UNCONSISTENT;
   }
   //Copie du payload
   memcpy(buf+10+lengthOfLength,pkt->payload,size);
