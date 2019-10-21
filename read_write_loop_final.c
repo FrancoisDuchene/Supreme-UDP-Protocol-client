@@ -112,13 +112,11 @@ general_status_code read_write_loop(int sfd) {
 				
 				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf_read, *readLen);
 
-
-
 				curPktList = (struct pktList *) malloc(sizeof(struct pktList *));
 				curPktList->currentPkt = pkt_actu;
 
 				pkt_status = pkt_encode(pkt_actu,buf, readLen);
-				if(pkt_status != PKT_OK ){
+				if(pkt_status != PKT_OK ) {
 					printf("Erreur lors du encode de type : %u\n", pkt_status);
 					free_loop_res(buf, pkt_actu, curLow, curHi, curPktFirst);
 					return E_ENCODE;
