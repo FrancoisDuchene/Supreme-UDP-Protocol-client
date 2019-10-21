@@ -2,6 +2,7 @@
 #define _LINKED_LIST_
 
 #include <time.h>
+#include <stdlib.h>
 
 #include "packet_interface.h"
 

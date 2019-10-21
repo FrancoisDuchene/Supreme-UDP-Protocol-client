@@ -29,8 +29,13 @@ general_status_code read_write_loop(int sfd) {
 	int curWindowSize = 1;
 
 	//Liste des paquets envoyés
-	struct pktList* curPktFirst = NULL;
-	struct pktList* curPktList = curPktFirst;
+	struct pktList* curPktList = new_pktlist();
+	if (curPktList == NULL){
+		perror("Erreur malloc read_write_loopn\n");
+		free(curLow);
+		free(curHi);
+		return E_NOMEMORY;
+	}
 
 	// Variables utilisees durant l'exécution
 	char *buf = (char *) malloc(1024*sizeof(char));
@@ -38,6 +43,7 @@ general_status_code read_write_loop(int sfd) {
 		perror("Erreur malloc read_write_loopn\n");
 		free(curLow);
 		free(curHi);
+		del_pktlist(curPktList);
 		return E_NOMEMORY;
 	}
 	// Buffer pour lire des données sur stdin
@@ -47,6 +53,7 @@ general_status_code read_write_loop(int sfd) {
 		perror("Erreur malloc read_write_loop\n");
 		free(curLow);
 		free(curHi);
+		del_pktlist(curPktList);
 		free(buf);
 		return E_NOMEMORY;
 	}
@@ -60,7 +67,7 @@ general_status_code read_write_loop(int sfd) {
 	pkt_t *pkt_actu = pkt_new();
 	if(pkt_actu == NULL) {
 		fprintf(stderr, "Erreur allocation du paquet\n");
-		free_loop_res(buf, pkt_actu, curLow, curHi, curPktFirst);
+		free_loop_res(buf, pkt_actu, curLow, curHi, curPktList);
 		return E_NOMEMORY;
 	}
 
@@ -87,13 +94,13 @@ general_status_code read_write_loop(int sfd) {
 		if(status < 0) {
 
 			perror("An error has occured with poll\n");
-			free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
+			free_loop_res(buf, pkt_actu,curLow,curHi,curPktList);
 			return E_POLL;
 
 		} else if (status == 0) {
 
 			fprintf(stderr, "Timeout has occured ! No data transfered after %d seconds\n", TIMEOUT);
-			free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
+			free_loop_res(buf, pkt_actu,curLow,curHi,curPktList);
 			return E_TIMEOUT;
 
 		} else {
@@ -107,7 +114,7 @@ general_status_code read_write_loop(int sfd) {
 				//If end of file
 				if((ssize_t)*readLen == 0) {
 					eof_stdin = 0;
-					free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
+					free_loop_res(buf, pkt_actu,curLow,curHi,curPktList);
 					return PKT_OK;
 				}
 
@@ -118,13 +125,16 @@ general_status_code read_write_loop(int sfd) {
 				
 				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf_read, *readLen);
 
-				curPktList = (struct pktList *) malloc(sizeof(struct pktList *));
-				curPktList->currentPkt = pkt_actu;
+				struct timespec curTime;
+				curTime.tv_sec = 0;
+				curTime.tv_nsec = 0;
+				//Ajoute le nouveau paquet créé à la liste des paquets qui n'ont pas encore été receptionnés
+				enqueue(curPktList,pkt_actu,curTime);
 
 				pkt_status = pkt_encode(pkt_actu,buf, readLen);
 				if(pkt_status != PKT_OK ) {
 					printf("Erreur lors du encode de type : %u\n", pkt_status);
-					free_loop_res(buf, pkt_actu, curLow, curHi, curPktFirst);
+					free_loop_res(buf, pkt_actu, curLow, curHi, curPktList);
 					return E_ENCODE;
 				}
 
@@ -132,8 +142,6 @@ general_status_code read_write_loop(int sfd) {
 				
 
 				nbCurPkt = nbCurPkt + 1;
-				curPktList->next = NULL;
-				curPktList = curPktList->next;
 				//To do, faut aussi gérer le time et donc le réenvoi de paquets qui ont posé problème
 			}
 
@@ -147,14 +155,14 @@ general_status_code read_write_loop(int sfd) {
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
 					printf("Erreur allocation du paquet \n");
-					free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
+					free_loop_res(buf, pkt_actu,curLow,curHi,curPktList);
 					return E_NOMEMORY;
 				}
 
 				pkt_status = pkt_decode(buf,readLen,pkt_actu);
 				if(pkt_status != 0 ) {
 					printf("Erreur lors du decode de type : %u\n",pkt_status);
-					free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
+					free_loop_res(buf, pkt_actu,curLow,curHi,curPktList);
 					return E_DECODE;
 				}
 
@@ -173,7 +181,7 @@ general_status_code read_write_loop(int sfd) {
 
 						//Appel de la méthode pour modifier les indices de la window en fonctions des acks reçus
 						int seqnum = pkt_get_seqnum(pkt_actu);
-						pkt_Ack(seqnum,curLow,curHi,curPktFirst);
+						pkt_Ack(seqnum,curLow,curHi,curPktList);
 
 						//Changement éventuel de la taille de la window
 						int window = pkt_get_window(pkt_actu);
@@ -191,7 +199,7 @@ general_status_code read_write_loop(int sfd) {
 
 						//Appel de la méthode gérant les nacks
 						int seqnum = pkt_get_seqnum(pkt_actu);
-						pkt_Nack(seqnum,curLow,curHi,curPktFirst);
+						pkt_Nack(seqnum,curLow,curHi,curPktList);
 
 					}
 
@@ -202,29 +210,25 @@ general_status_code read_write_loop(int sfd) {
 			}
 		}
   	}
-	free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
+	free_loop_res(buf, pkt_actu,curLow,curHi,curPktList);
 	return OK;
 }
 
-general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *curHi, struct pktList* curPktFirst) {
+general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *curHi, struct pktList* curPktList) {
 	if(buffer != NULL) free(buffer);
 	if(pkt != NULL) pkt_del(pkt);
 	if(curLow != NULL) free(curLow);
 	if(curHi != NULL) free(curHi);
 
-	struct pktList* actu = curPktFirst;
-	while(actu->next != NULL){
-		curPktFirst = curPktFirst->next;
-		free(actu->currentPkt);
-		free(actu);
-		actu = curPktFirst;
+	if(curPktList != NULL){
+		del_pktlist(curPktList);
 	}
 	
 	return OK;
 }
 
 
-general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList* curPktFirst) {
+general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList* curPktList) {
 
 	//Si le seqnum a une valeur invalide
 	if (seqnum < 0 || seqnum > 255) {
@@ -257,7 +261,7 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 		nbCurPkt = nbCurPkt -1;
 	}
 
-	struct pktList* actu = curPktFirst;
+	struct node* actu = curPktList->last;
 	if (actu == NULL){
 		printf("Quelque chose d'incohérent s'est produit\n");
 		return  E_INCOHERENT;
@@ -265,12 +269,24 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 
 	//On libère tous les paquets dont le seqnum précède celui du ack reçu 
 	while(actu->currentPkt->seqnum != seqnum){
-		curPktFirst = curPktFirst->next;
-		free(actu->currentPkt);
-		free(actu);
-		actu = curPktFirst;
+
+		pkt_t *retval=NULL;
+		struct timespec *rettime=NULL;
+		dequeue(curPktList,retval,rettime);
+		
+		if (retval == NULL){
+			return !OK;
+		}
+		free(retval);
+		
+		if (rettime == NULL){
+			return !OK;
+		}
+		free(rettime);
+		
+		actu = curPktList->last;
 		if (actu == NULL){
-			break;
+			return  OK;
 		}
 	}
 
@@ -278,8 +294,8 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 }
 
 
-general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList* curPktFirst) {
-	*curPktFirst = *curPktFirst;
+general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList* curPktList) {
+	*curPktList = *curPktList;
 	//Si le seqnum a une valeur invalide
 	if (seqnum < 0 || seqnum > 255) {
 		printf("Numero de seqnum invalide\n");

@@ -16,14 +16,9 @@
 #include "packet_interface.h"
 #include "window.h"
 #include "pkt_builder.h"
+#include "linked_list.h"
 
 #define TIMEOUT -1
-
-typedef struct pktList{
-    pkt_t * currentPkt;
-    struct pktList* next;
-    struct timespec time;
-}pktList;
 
 /* Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
