@@ -21,6 +21,7 @@ general_status_code read_write_loop(int sfd) {
 	int * curHi = (int *) malloc(sizeof(int));;
 	if (curHi == NULL){
 		perror("Erreur malloc indice2");
+		free(curLow);
 		return E_NOMEMORY;
 	}
 	*curHi = 1;
@@ -35,6 +36,18 @@ general_status_code read_write_loop(int sfd) {
 	char *buf = (char *) malloc(1024*sizeof(char));
 	if(buf == NULL) {
 		perror("Erreur malloc read_write_loop");
+		free(curLow);
+		free(curHi);
+		return E_NOMEMORY;
+	}
+	// Buffer pour lire des données sur stdin
+	// Si on limite à 512, le read lit automatiquement en plusieurs fois
+	char *buf_read = (char *) malloc(512*sizeof(char));
+	if(buf == NULL) {
+		perror("Erreur malloc read_write_loop");
+		free(curLow);
+		free(curHi);
+		free(buf);
 		return E_NOMEMORY;
 	}
 
@@ -89,7 +102,7 @@ general_status_code read_write_loop(int sfd) {
 				size_t *readLen = (size_t *) malloc(sizeof(size_t));
 				if(readLen == NULL) return E_NOMEMORY;
 				
-				*readLen = read(STDIN_FILENO, buf, sizeof(buf));
+				*readLen = read(STDIN_FILENO, buf_read, 512);
 
 				gen_status = update_seqnum(actual_seqnum);
 				if(gen_status != OK) {
@@ -97,7 +110,7 @@ general_status_code read_write_loop(int sfd) {
 				}
 				//TODO changer la valeur de window
 				
-				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf, *readLen);
+				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf_read, *readLen);
 
 
 
