@@ -13,14 +13,14 @@ general_status_code read_write_loop(int sfd) {
 	//La table window et ses indices
 	int * curLow = (int *) malloc(sizeof(int));
 	if (curLow == NULL){
-		perror("Erreur malloc indice1");
+		perror("Erreur malloc indice1\n");
 		return E_NOMEMORY;
 	}
 	*curLow = 0;
 
 	int * curHi = (int *) malloc(sizeof(int));;
 	if (curHi == NULL){
-		perror("Erreur malloc indice2");
+		perror("Erreur malloc indice2\n");
 		free(curLow);
 		return E_NOMEMORY;
 	}
@@ -35,7 +35,7 @@ general_status_code read_write_loop(int sfd) {
 	// Variables utilisees durant l'exécution
 	char *buf = (char *) malloc(1024*sizeof(char));
 	if(buf == NULL) {
-		perror("Erreur malloc read_write_loop");
+		perror("Erreur malloc read_write_loopn\n");
 		free(curLow);
 		free(curHi);
 		return E_NOMEMORY;
@@ -44,7 +44,7 @@ general_status_code read_write_loop(int sfd) {
 	// Si on limite à 512, le read lit automatiquement en plusieurs fois
 	char *buf_read = (char *) malloc(512*sizeof(char));
 	if(buf == NULL) {
-		perror("Erreur malloc read_write_loop");
+		perror("Erreur malloc read_write_loop\n");
 		free(curLow);
 		free(curHi);
 		free(buf);
@@ -59,14 +59,14 @@ general_status_code read_write_loop(int sfd) {
 
 	pkt_t *pkt_actu = pkt_new();
 	if(pkt_actu == NULL) {
-		fprintf(stderr, "Erreur allocation du paquet \n");
+		fprintf(stderr, "Erreur allocation du paquet\n");
 		free_loop_res(buf, pkt_actu, curLow, curHi, curPktFirst);
 		return E_NOMEMORY;
 	}
 
 	uint8_t *actual_seqnum = (uint8_t*) malloc(sizeof (uint8_t));
 	if(actual_seqnum == NULL) {
-		perror("Erreur malloc read_write_loop");
+		perror("Erreur malloc read_write_loop\n");
 		return E_NOMEMORY;
 	}
 	*actual_seqnum = 0;
@@ -86,7 +86,7 @@ general_status_code read_write_loop(int sfd) {
 
 		if(status < 0) {
 
-			perror("An error has occured with poll");
+			perror("An error has occured with poll\n");
 			free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
 			return E_POLL;
 
@@ -106,7 +106,7 @@ general_status_code read_write_loop(int sfd) {
 
 				gen_status = update_seqnum(actual_seqnum);
 				if(gen_status != OK) {
-					printf("oh mince");
+					printf("oh mince\n");
 				}
 				//TODO changer la valeur de window
 				
@@ -117,7 +117,7 @@ general_status_code read_write_loop(int sfd) {
 				curPktList = (struct pktList *) malloc(sizeof(struct pktList *));
 				curPktList->currentPkt = pkt_actu;
 
-				pkt_status = pkt_encode(pkt_actu,buf, &readLen);
+				pkt_status = pkt_encode(pkt_actu,buf, readLen);
 				if(pkt_status != PKT_OK ){
 					printf("Erreur lors du encode de type : %u\n", pkt_status);
 					free_loop_res(buf, pkt_actu, curLow, curHi, curPktFirst);
@@ -140,7 +140,7 @@ general_status_code read_write_loop(int sfd) {
 				// On reçoit un message et on l'affiche
 				size_t readLen = recv(sfd, (void *) buf, 1024, 0);
 
-				fprintf(stderr, "Reçu %zu bytes !", readLen);
+				fprintf(stderr, "Reçu %zu bytes ! \t", readLen);
 
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
@@ -224,7 +224,7 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 
 	//Si le seqnum a une valeur invalide
 	if (seqnum < 0 || seqnum > 255) {
-		printf("Numero de seqnum invalide");
+		printf("Numero de seqnum invalide\n");
 		return E_SEQNUM_GEN;
 	} 
 
@@ -233,7 +233,7 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 
 		//Si le seqnum a une valeur invalide
 		if (seqnum < *curLow || seqnum > *curHi) {
-			printf("Numero de seqnum invalide");
+			printf("Numero de seqnum invalide\n");
 			return E_SEQNUM_GEN;
 		} 
 	//Cas 2: l'indice de début de window est plus grand que l'indice de fin de window (curHi a dépassé 255 et a donc repris au début)
@@ -241,7 +241,7 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 
 		//Si le seqnum a une valeur invalide
 		if (seqnum < *curLow && seqnum > *curHi) {
-			printf("Numero de seqnum invalide");
+			printf("Numero de seqnum invalide\n");
 			return E_SEQNUM_GEN;
 		} 
 	}
@@ -255,7 +255,7 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 
 	struct pktList* actu = curPktFirst;
 	if (actu == NULL){
-		printf("Quelque chose d'incohérent s'est produit");
+		printf("Quelque chose d'incohérent s'est produit\n");
 		return  E_INCOHERENT;
 	}
 
@@ -278,7 +278,7 @@ general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList*
 	*curPktFirst = *curPktFirst;
 	//Si le seqnum a une valeur invalide
 	if (seqnum < 0 || seqnum > 255) {
-		printf("Numero de seqnum invalide");
+		printf("Numero de seqnum invalide\n");
 		return E_SEQNUM_GEN;
 	} 
 
@@ -287,11 +287,11 @@ general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList*
 
 		//Si le seqnum a une valeur valide
 		if (seqnum > *curLow && seqnum < *curHi) {
-			printf("Numero de seqnum valide, mais osef");
+			printf("Numero de seqnum valide, mais osef\n");
 
 		//Si le seqnum a une valeur invalide
 		} else {
-			printf("Numero de seqnum invalide");
+			printf("Numero de seqnum invalide\n");
 			return E_SEQNUM_GEN;
 		}	
 
@@ -300,11 +300,11 @@ general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList*
 
 		//Si le seqnum a une valeur valide
 		if ( (seqnum > *curLow && seqnum < 256) || (seqnum < *curHi && seqnum >= 0) ) {
-			printf("Numero de seqnum valide, mais osef");
+			printf("Numero de seqnum valide, mais osef\n");
 
 		//Si le seqnum a une valeur invalide
 		} else {
-			printf("Numero de seqnum invalide");
+			printf("Numero de seqnum invalide\n");
 			return E_SEQNUM_GEN;
 		}	
 
