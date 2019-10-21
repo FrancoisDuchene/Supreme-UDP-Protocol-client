@@ -52,7 +52,7 @@ general_status_code read_write_loop(int sfd) {
 	}
 
 	int eof_stdin = 1;
-	int eof_sfd = 1;
+	//int eof_sfd = 1;
 	int status;
 	pkt_status_code pkt_status;
 	general_status_code gen_status;
@@ -80,7 +80,7 @@ general_status_code read_write_loop(int sfd) {
 	ufds[1].fd = sfd;
 	ufds[1].events = POLLIN;
 
-	while (eof_stdin || eof_sfd) {
+	while (eof_stdin) {
 
 		status = poll(ufds, 2, TIMEOUT);
 
@@ -104,11 +104,17 @@ general_status_code read_write_loop(int sfd) {
 				
 				*readLen = read(STDIN_FILENO, buf_read, 512);
 
+				//If end of file
+				if((ssize_t)*readLen == 0) {
+					eof_stdin = 0;
+					free_loop_res(buf, pkt_actu,curLow,curHi,curPktFirst);
+					return PKT_OK;
+				}
+
 				gen_status = update_seqnum(actual_seqnum);
 				if(gen_status != OK) {
 					printf("oh mince\n");
 				}
-				//TODO changer la valeur de window
 				
 				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf_read, *readLen);
 
@@ -123,9 +129,7 @@ general_status_code read_write_loop(int sfd) {
 				}
 
 				*readLen = send(sfd, (void *) buf, *readLen, 0);
-				if(*readLen == 0) {
-					eof_stdin = 0;
-				}
+				
 
 				nbCurPkt = nbCurPkt + 1;
 				curPktList->next = NULL;
@@ -133,8 +137,8 @@ general_status_code read_write_loop(int sfd) {
 				//To do, faut aussi gérer le time et donc le réenvoi de paquets qui ont posé problème
 			}
 
-			if (ufds[1].revents & POLLIN && eof_sfd) {
-				//TODO gérer le EOF reçu (end of connexion)
+			if (ufds[1].revents & POLLIN) {
+
 				// On reçoit un message et on l'affiche
 				size_t readLen = recv(sfd, (void *) buf, 1024, 0);
 
@@ -158,7 +162,9 @@ general_status_code read_write_loop(int sfd) {
 
 				//Verification du type de paquet 
 				if (type ==  PTYPE_DATA){
+
 					printf("Lol mais n'on est pas un receiver ici, vous êtes toctoc, fufu \n");
+
 				} else if (type == PTYPE_ACK) {
 
 					//vérification si tr valide
@@ -286,6 +292,8 @@ general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList*
 		//Si le seqnum a une valeur valide
 		if (seqnum > *curLow && seqnum < *curHi) {
 			printf("Numero de seqnum valide, mais osef\n");
+			int randomVal = rand() % 30;
+			sleep(1000 + randomVal);
 
 		//Si le seqnum a une valeur invalide
 		} else {
@@ -299,6 +307,8 @@ general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList*
 		//Si le seqnum a une valeur valide
 		if ( (seqnum > *curLow && seqnum < 256) || (seqnum < *curHi && seqnum >= 0) ) {
 			printf("Numero de seqnum valide, mais osef\n");
+			int randomVal = rand() % 30;
+			sleep(1000 + randomVal);
 
 		//Si le seqnum a une valeur invalide
 		} else {
