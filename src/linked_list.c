@@ -22,6 +22,7 @@ void del_pktlist(pktList *list) {
     struct node* current = list->first;
     struct node* tmp = NULL;
     while(current != NULL) {
+        fprintf(stderr, "COUCOU");
         pkt_del(current->currentPkt);
         tmp = current->next;
         free(current);
@@ -60,6 +61,12 @@ void dequeue(pktList *list, pkt_t* retval, struct timespec *rettime) {
     retval = noeud->currentPkt;
     rettime = &(noeud->time);
 
-    list->first = list->first->next;
+    if(list->last == list->first) {
+        list->first = NULL;
+        list->last = NULL;
+    }else{
+        list->first = list->first->next;
+    }
+    
     free(noeud);
 }

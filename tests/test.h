@@ -4,7 +4,9 @@
 
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
-#include "../headers.h"
+#include <arpa/inet.h>
+#include "../src/packet_interface.h"
+#include "../src/linked_list.h"
 
 // test format
 void test_pkt_new();
@@ -23,5 +25,9 @@ void test_predict_header_length();
 void test_varuint_decode();
 void test_varuint_encode();
 void test_encode_decode();
-
+// test linked list
+void test_linked_list_new();
+void test_linked_list_del();
+void test_linked_enqueue();
+void test_linked_dequeue();
 #endif

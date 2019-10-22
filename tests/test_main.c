@@ -2,6 +2,7 @@
 
 int main(void) {
   CU_pSuite pSuite_format = NULL;
+  CU_pSuite pSuite_linkedList = NULL;
 
   //init
   if(CUE_SUCCESS != CU_initialize_registry())
@@ -14,7 +15,13 @@ int main(void) {
     return CU_get_error();
   }
 
-  if((CU_add_test(pSuite_format, "Test pkt_new", test_pkt_new) == NULL) ||
+  pSuite_linkedList = CU_add_suite("Implémentation linked list", NULL, NULL);
+  if(pSuite_linkedList == NULL) {
+    CU_cleanup_registry();
+    return CU_get_error();
+  }
+
+  if( CU_add_test(pSuite_format, "Test pkt_new", test_pkt_new) == NULL ||
       CU_add_test(pSuite_format, "Test pkt_getters", test_pkt_getters) == NULL ||
       CU_add_test(pSuite_format, "Test pkt_set_type", test_set_type) == NULL ||
       CU_add_test(pSuite_format, "Test pkt_set_tr", test_set_tr) == NULL ||
@@ -36,6 +43,15 @@ int main(void) {
     return CU_get_error();
   }
 
+  if( CU_add_test(pSuite_linkedList, "Test linked_list_new", test_pkt_new) == NULL ||
+      CU_add_test(pSuite_linkedList, "Test linked_list_del", test_linked_list_del) == NULL ||
+      CU_add_test(pSuite_linkedList, "Test linked_enqueue", test_linked_enqueue) == NULL ||
+      CU_add_test(pSuite_linkedList, "Test linked_dequeue", test_linked_dequeue) == NULL
+  )
+  {
+    CU_cleanup_registry();
+    return CU_get_error();
+  }
   //run
   CU_basic_set_mode(CU_BRM_VERBOSE);
   CU_basic_run_tests();

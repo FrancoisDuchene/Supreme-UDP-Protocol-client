@@ -7,26 +7,23 @@ CFLAGS += -Wshadow # Warn when shadowing variables
 CFLAGS += -O2 -D_FORTIFY_SOURCE=2 # Add canary code, i.e. detect buffer overflows
 CFLAGS += -fstack-protector-all # Add canary code to detect stack smashing
 CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for getpot and getaddrinfo
-HFILES = packet_interface.h sender.h general.h init_connexion.h read_write_loop_final.h window.h pkt_builder.h linked_list.h
-COMMONCFILES = packet_implem.c sender.c init_connexion.c read_write_loop_final.c utils.c window.c pkt_builder.c linked_list.c 
-TESTFILES = test/test_main.c test/test.h test/format_tests.c
+HFILES = src/packet_interface.h  src/general.h src/init_connexion.h src/read_write_loop_final.h src/window.h src/pkt_builder.h src/linked_list.h
+COMMONCFILES = src/packet_implem.c src/init_connexion.c src/read_write_loop_final.c src/utils.c src/window.c src/pkt_builder.c src/linked_list.c 
+TESTFILES = tests/test_main.c tests/test.h tests/format_tests.c tests/linkedlist_tests.c
 
 .SILENT:
 
 all: clean sender end
 
-packet:
-	gcc $(COMMONCFILES) $(HFILES) -o packet $(CFLAGS) $(OPT)
-
 sender:
-	gcc $(COMMONCFILES) $(HFILES) -o sender $(CFLAGS) $(OPT)
+	gcc $(COMMONCFILES) src/sender.c $(HFILES) src/sender.h -o sender $(CFLAGS) $(OPT)
 
 tests:
 	rm -f test_launch
 	gcc $(TESTFILES) $(COMMONCFILES) $(HFILES) -o test_launch -lcunit $(CFLAGS) $(OPT)
 
 checks:
-	cppcheck $(COMMONCFILES) $(HFILES)
+	cppcheck $(COMMONCFILES) src/sender.c $(HFILES) src/sender.h
 
 clean:
 	#rm -f packet

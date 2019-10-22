@@ -1,0 +1,623 @@
+commit 802d9fb07d366bf69847bedcba9919d1221f4167
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 22 16:06:43 2019 +0200
+
+    mmmmmmmmm
+
+ linked_list.c           | 23 ++++++++++-------------
+ read_write_loop_final.c |  2 +-
+ 2 files changed, 11 insertions(+), 14 deletions(-)
+
+commit 103bf18f7b495923b9d56076acc60d1c66d26896
+Merge: 526feca d23426e
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 22 15:33:15 2019 +0200
+
+    lolololol
+
+commit d23426e456ec937ba5b256f51bfbf4d79e35a691
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Tue Oct 22 17:30:57 2019 +0200
+
+    petites modifications ponctuelles
+
+ read_write_loop_final.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
+
+commit 526feca8743f4acb3963b38e1cae4a709dcd8490
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 22 15:31:29 2019 +0200
+
+    correction de presque toutes les memory leaks et fprintf pour tous
+
+ Makefile                |   3 ++
+ init_connexion.c        |   1 +
+ pkt_builder.c           |   2 +-
+ pkt_builder.h           |   2 +-
+ read_write_loop_final.c | 134 ++++++++++++++++++++++++++----------------------
+ read_write_loop_final.h |   3 +-
+ sender.c                |  10 +++-
+ 7 files changed, 88 insertions(+), 67 deletions(-)
+
+commit f38190f126f2c2a3f020aa694c5960655f405082
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 22 11:27:14 2019 +0200
+
+    fonctionne avec des fichiers maintenant
+
+ read_write_loop_final.c | 19 +++++++++++--------
+ read_write_loop_final.h |  3 ++-
+ sender.c                |  3 ++-
+ 3 files changed, 15 insertions(+), 10 deletions(-)
+
+commit 632f210259ffcd47348777d08877d529114086a2
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Mon Oct 21 19:06:16 2019 +0200
+
+    encore une maj
+
+ Makefile                |  5 ++--
+ linked_list.h           |  1 +
+ read_write_loop_final.c | 80 +++++++++++++++++++++++++++++--------------------
+ read_write_loop_final.h |  7 +----
+ 4 files changed, 53 insertions(+), 40 deletions(-)
+
+commit 8173ce5a8fdd96ccb1f97adf1a49354173de316f
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Mon Oct 21 16:47:57 2019 +0200
+
+    changement makefile
+
+ Makefile | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+commit fad015a615eabc8e8ad80da9b3852f4f1bad1966
+Merge: a93d592 14427ff
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Mon Oct 21 16:31:06 2019 +0200
+
+    Merge branch 'master' of https://github.com/FrancoisDuchene/Supreme-UDP-Protocol-client
+
+commit 14427ff1b53d7ec185e3a7bfd242db57aaffb3fb
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Mon Oct 21 18:22:26 2019 +0200
+
+    toujours la meme chose
+
+ read_write_loop_final.c | 28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
+
+commit a93d59203266842d54deb915cb2eed660db54140
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Mon Oct 21 16:30:36 2019 +0200
+
+    ajout interface linked_list
+
+ linked_list.c           | 68 +++++++++++++++++++++++++++++++++++++++++++++++++
+ linked_list.h           | 42 ++++++++++++++++++++++++++++++
+ read_write_loop_final.c |  4 +--
+ 3 files changed, 111 insertions(+), 3 deletions(-)
+
+commit eea122e2ed679998957c8762f5c6f0f589c6c3c7
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Mon Oct 21 14:27:25 2019 +0200
+
+    des \n
+
+ read_write_loop_final.c | 38 +++++++++++++++++++-------------------
+ window.c                | 14 --------------
+ window.h                |  7 -------
+ 3 files changed, 19 insertions(+), 40 deletions(-)
+
+commit bf98a5721696d4a2ce1a7e1d7cdd891d956f130a
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Mon Oct 21 13:43:47 2019 +0200
+
+    coucou petite perruche
+
+ general.h               |  1 +
+ pkt_builder.c           | 12 ++++++------
+ read_write_loop_final.c | 17 +++++++++++++++--
+ 3 files changed, 22 insertions(+), 8 deletions(-)
+
+commit e6ddbc592dde2bf27914157bee5f653e4f4c8425
+Merge: 8b91c9c 7ed7100
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Sun Oct 20 14:14:32 2019 +0200
+
+    merge conflict yay
+
+commit 8b91c9c610434267a546a858b0cba617d404eb01
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Sun Oct 20 14:12:16 2019 +0200
+
+    on avance
+
+ .vscode/settings.json   |   7 +++++++
+ chat/chat               | Bin 17864 -> 13616 bytes
+ general.h               |   2 +-
+ packet_implem.c         |   4 ++--
+ pkt_builder.c           |  30 ++++++++++++++++++++++++------
+ read_write_loop_final.c |  26 +++++++++++++++++---------
+ sender                  | Bin 0 -> 82352 bytes
+ test_launch             | Bin 0 -> 50752 bytes
+ window.c                |   2 +-
+ 9 files changed, 52 insertions(+), 19 deletions(-)
+
+commit 7ed710002336ad387b142b9bc28c6f3c5fd01692
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Sun Oct 20 13:24:45 2019 +0200
+
+    Avancement dans le selective repeat
+
+ general.h               |  1 +
+ read_write_loop_final.c | 85 ++++++++++++++++++++++++++++++++++++-------------
+ read_write_loop_final.h | 13 ++++++--
+ window.c                |  5 ++-
+ window.h                |  2 +-
+ 5 files changed, 77 insertions(+), 29 deletions(-)
+
+commit 52a09dbd099a8607e2f576f3dd50a66cb974db1d
+Merge: 83459f6 2d70ff7
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 17 17:30:38 2019 +0200
+
+    pouloulou
+
+commit 83459f69a38cb9a01dfe17a1ead5a01d612b82cf
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 17 17:26:27 2019 +0200
+
+    fonction pour créer des paquets + implémentation dans la partie input
+
+ Makefile                |  4 ++--
+ pkt_builder.c           | 17 +++++++++++++++++
+ pkt_builder.h           | 11 +++++++++++
+ read_write_loop_final.c | 37 +++++++++++++++++++++++--------------
+ read_write_loop_final.h |  1 +
+ window.c                | 12 +++---------
+ window.h                |  2 ++
+ 7 files changed, 59 insertions(+), 25 deletions(-)
+
+commit 2d70ff7d9a03bf39fb2b5348cd65bd9a3d0260ef
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Thu Oct 17 17:06:55 2019 +0200
+
+    Un code elegant est un code heureux
+
+ read_write_loop_final.c | 65 ++++++++++++++++++++++++++++++-------------------
+ read_write_loop_final.h |  7 ++++++
+ window.c                | 21 +++++++---------
+ 3 files changed, 56 insertions(+), 37 deletions(-)
+
+commit 75f61220d642909e2f3fc01eed039418013b8c99
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 17 16:14:27 2019 +0200
+
+    c'est génial
+
+ general.h               |  2 +-
+ read_write_loop_final.c | 64 +++++++++++++++++++++----------------------------
+ read_write_loop_final.h |  7 +++---
+ window.c                |  8 +++----
+ 4 files changed, 36 insertions(+), 45 deletions(-)
+
+commit f5aadc725f43b50038f8b510e2732f74e6b69260
+Merge: f580507 7b82d97
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 17 15:56:21 2019 +0200
+
+    merge succeeeded
+
+commit f5805079c3749eee210df4a1070e193afcd2f29b
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 17 15:51:55 2019 +0200
+
+    tu les sens les merge conflicts là ?
+
+ Makefile                |  4 ++--
+ general.h               |  1 +
+ init_connexion.c        |  5 +++--
+ read_write_loop_final.c | 33 ++++++++++++---------------------
+ read_write_loop_final.h | 11 +++++------
+ utils.c                 |  2 ++
+ utils.h                 | 15 +++++++++++++++
+ window.c                | 14 +++++++++++++-
+ window.h                |  3 +++
+ 9 files changed, 56 insertions(+), 32 deletions(-)
+
+commit 7b82d972020060ff5bbd1bfa26e9453a656c6597
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Wed Oct 16 18:26:20 2019 +0200
+
+    Avancement
+
+ read_write_loop_final.c | 115 +++++++++++++++++++++++++++++++++---------------
+ read_write_loop_final.h |   3 +-
+ window.c                |  38 ++++++++++++++++
+ window.h                |   6 +++
+ 4 files changed, 125 insertions(+), 37 deletions(-)
+
+commit 437e7f9999ab337eb5794b5e23711696afe94878
+Merge: 535b2fc 6c4f749
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Wed Oct 16 17:18:07 2019 +0200
+
+    merge conflict solved mdr
+
+commit 535b2fc2be65afeb2d616a6ccbe30ede96262e65
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Wed Oct 16 17:16:17 2019 +0200
+
+    petites modifs
+
+ general.h               |   2 +-
+ init_connexion.c        |   2 +-
+ init_connexion.h        |   2 +-
+ read_write_loop_final.c | 108 +++++++++++++++++++++++++-----------------------
+ read_write_loop_final.h |   8 +++-
+ sender.c                |  18 ++++++--
+ sender.h                |   4 +-
+ window.c                |   2 +-
+ window.h                |   1 +
+ 9 files changed, 84 insertions(+), 63 deletions(-)
+
+commit 6c4f7494603d476e3038532da4087f89fb60b9b4
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Wed Oct 16 11:40:00 2019 +0200
+
+    avancée sur la réceptions de ack
+
+ read_write_loop_final.c | 91 ++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 78 insertions(+), 13 deletions(-)
+
+commit f8beb6ec3e00e4c56270cfb65be24664c7960e81
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Tue Oct 15 20:42:42 2019 +0200
+
+    on avance un petit peu
+
+ read_write_loop_final.c | 143 ++++++++++++++++++++++++++++--------------------
+ 1 file changed, 85 insertions(+), 58 deletions(-)
+
+commit 297c4eb9846ac3be7a0371ed0466cccf28b2601f
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 15 17:56:49 2019 +0200
+
+    réorganization fichiers + upgrades boucle principale
+
+ general.h               |  13 ++++
+ init_connexion.c        |  19 -----
+ init_connexion.h        |  12 +--
+ packet                  | Bin 25248 -> 0 bytes
+ read_write_loop_final.c | 127 +++++++++++++++++---------------
+ read_write_loop_final.h |  23 +++++-
+ sender.c                | 191 ++----------------------------------------------
+ sender.h                |  12 +--
+ utils.c                 |  48 ++++++++++++
+ window.c                |  15 ++++
+ window.h                |  16 ++++
+ 11 files changed, 190 insertions(+), 286 deletions(-)
+
+commit 442d775a588b05ddc115eb51789c7aa829c2ae93
+Merge: 179549d d6c35a0
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 15 14:50:23 2019 +0200
+
+    Merge branch 'master' of https://github.com/FrancoisDuchene/Supreme-UDP-Protocol-client
+
+commit d6c35a0447104c59b737985adaaaa90973d7947e
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Tue Oct 15 14:54:10 2019 +0200
+
+    debut de fonctions pour la suite
+
+ read_write_loop_final.c | 102 ++++++++++++++++++++++++++++++++++++++++++++++++
+ read_write_loop_final.h |  11 ++++++
+ 2 files changed, 113 insertions(+)
+
+commit 179549d10e5c123bfa6189914dc5e0e0e8f51c69
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 15 14:48:40 2019 +0200
+
+    Updated Makefile + Réorganisation .h
+
+ Makefile         | 13 ++++++--
+ headers.h        | 40 -------------------------
+ init_connexion.c | 91 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ init_connexion.h | 44 +++++++++++++++++++++++++++
+ sender.c         | 26 ++++------------
+ sender.h         | 32 ++++++++++++++++++--
+ 6 files changed, 180 insertions(+), 66 deletions(-)
+
+commit 21af0f8744bd4b5c828c4ed372fe3c24a1c758ee
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Mon Oct 14 23:54:34 2019 +0200
+
+    remplace select par poll, ça fonctionne comme par magie
+
+ chat/read_write_loop.c | 97 +++++++++++++++++++++++++++-----------------------
+ 1 file changed, 53 insertions(+), 44 deletions(-)
+
+commit c38f84ec38ec8aa319a4aee5b3d3f11cc4be7824
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Mon Oct 14 20:25:06 2019 +0200
+
+    ces fonctions là marchent maintenant
+
+ chat/create_socket.c   |  9 ++++-----
+ chat/real_address.c    | 16 +++++++++-------
+ chat/wait_for_client.c |  6 +++---
+ 3 files changed, 16 insertions(+), 15 deletions(-)
+
+commit 9510d836a11a4011c782b1e2853aa14b7ab7a09c
+Author: reginsterg <guillaumereg@hotmail.fr>
+Date:   Mon Oct 14 12:04:48 2019 +0200
+
+    amélioration de fonctions chat
+
+ chat/create_socket.c   | 90 +++++++++++++++++++++++++-------------------------
+ chat/read_write_loop.c | 62 +++++++++++++++++-----------------
+ 2 files changed, 75 insertions(+), 77 deletions(-)
+
+commit 07017b3145a69ae21f0f851b20c9602add5c99a1
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Sun Oct 13 16:27:11 2019 +0200
+
+    c'est choeutte de créer des sockets
+
+ .gitignore           | 1 +
+ chat/create_socket.c | 5 +++--
+ chat/real_address.c  | 3 ++-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
+
+commit aa4af8a61d8066e470ed76cef42b65b8b6bdd35c
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Sun Oct 13 14:49:23 2019 +0200
+
+    séparation en plusieurs fichiers + ça compile maintenant
+
+ chat/chat              | Bin 0 -> 17864 bytes
+ chat/chat.c            | 166 +------------------------------------------------
+ chat/create_socket.c   |  66 ++++++++++++++++++++
+ chat/read_write_loop.c |  62 ++++++++++++++++++
+ chat/real_address.c    |  32 ++++++++++
+ chat/wait_for_client.c |  32 ++++++++++
+ 6 files changed, 193 insertions(+), 165 deletions(-)
+
+commit 81f11021236ef3d083b588b40a61f1b6cb280a85
+Merge: 9bc4491 8ce76dd
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Sun Oct 13 13:07:24 2019 +0200
+
+    Merge branch 'master' of https://github.com/FrancoisDuchene/Supreme-UDP-Protocol-client
+
+commit 9bc4491368bb0af5742c243e7f0ee7467c9ba36c
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Sun Oct 13 13:07:10 2019 +0200
+
+    wait_for_client and create_socket
+
+ chat/chat.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+commit 8ce76ddab668fa3f181d5ad924412e04b13651b4
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Sat Oct 12 11:29:09 2019 +0200
+
+    nouvelle fonction chat
+
+ chat/chat.c | 53 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
+
+commit 22c29bb9cb4e26fff06625a202500dd6a9e3f531
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Thu Oct 10 20:17:51 2019 +0200
+
+    une fonction du chat
+
+ chat/chat.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+commit 5abfd49b26fadb8afdf0f6c2d853d84a7b793bc6
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 10 18:14:30 2019 +0200
+
+    function create socket finished
+
+ chat/chat.c | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+
+commit 1e6f51845b9364aba7e5a7f0e92e1cb5032df861
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 10 16:45:27 2019 +0200
+
+    ajout des fichiers de tache pour chat
+
+ chat/Makefile          | 29 ++++++++++++++++++++
+ chat/chat.c            | 72 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ chat/create_socket.h   | 20 ++++++++++++++
+ chat/read_write_loop.h | 11 ++++++++
+ chat/real_address.h    | 17 ++++++++++++
+ chat/wait_for_client.h | 13 +++++++++
+ sender.c               | 18 +++++++++++++
+ 7 files changed, 180 insertions(+)
+
+commit 943ceadc29cedef9e14f7182f7b5bb3cd6c7d29e
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 10 15:53:50 2019 +0200
+
+    quick fix
+
+ packet_implem.c    | 77 +++++++++++++++++++++++++++---------------------------
+ packet_interface.h | 22 ++++++++--------
+ 2 files changed, 49 insertions(+), 50 deletions(-)
+
+commit 5c3d795e2ef62bc4ed8682bdb4f476d3b6b886a9
+Merge: 52ce018 766f05f
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 10 15:35:38 2019 +0200
+
+    Merge branch 'master' of https://github.com/FrancoisDuchene/Supreme-UDP-Protocol-client
+
+commit 766f05fef56e5d8963edf6704c4709a6c08a9359
+Author: guillaumereg <guillaumereg@hotmail.fr>
+Date:   Thu Oct 10 17:02:49 2019 +0200
+
+    Commentaires + 100% !
+
+ packet          | Bin 0 -> 25248 bytes
+ packet_implem.c | 154 ++++++++++++++++++++++++++++++--------------------------
+ 2 files changed, 83 insertions(+), 71 deletions(-)
+
+commit 52ce0182dc76316be76aa318e95a50cfc87e9533
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 10 15:35:26 2019 +0200
+
+    test sender
+
+ Makefile           |  11 +--
+ packet_interface.h |  40 +++++------
+ sender.c           | 193 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ sender.h           |   7 ++
+ 4 files changed, 226 insertions(+), 25 deletions(-)
+
+commit bb79043ed8b49654ed6f4e98520571099823b792
+Merge: b0ccaef 9ddb62f
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Wed Oct 9 10:35:39 2019 +0200
+
+    Merge branch 'master' of https://github.com/FrancoisDuchene/Supreme-UDP-Protocol-client
+
+commit b0ccaefbaafb5afc9ad44893eb1d329c3e761886
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Wed Oct 9 10:34:08 2019 +0200
+
+    gestion des arguments
+
+ headers.h |  3 +++
+ sender.c  | 50 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ sender.h  |  6 ++++++
+ 3 files changed, 59 insertions(+)
+
+commit 9ddb62fd8bd29aee582bb4ceb056248719c834b2
+Author: reginsterg <guillaumereg@hotmail.fr>
+Date:   Tue Oct 8 23:42:53 2019 +0200
+
+     des petites améliorations ponctuelles
+
+ packet_implem.c | 39 ++++++++++++++++++++++-----------------
+ 1 file changed, 22 insertions(+), 17 deletions(-)
+
+commit 3c5457172c1f1721aa47c91063e598499329faaf
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 8 17:18:49 2019 +0200
+
+    60% maggle
+
+ packet_implem.c     | 33 +++++++++++++++++++++++----------
+ test/format_tests.c | 24 ++++++++++++++++++++++++
+ test/test.h         |  1 +
+ test/test_main.c    |  3 ++-
+ 4 files changed, 50 insertions(+), 11 deletions(-)
+
+commit 508a4b4cfddeca7106abd92000edc9dfa7b38228
+Author: reginsterg <guillaumereg@hotmail.fr>
+Date:   Tue Oct 8 12:52:29 2019 +0200
+
+    correction bugs
+
+ packet_implem.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+commit 31cc6672e64c0690be948aa9fc67ee3854d4dde4
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Tue Oct 8 01:18:42 2019 +0200
+
+    40% sur inginious + tests unitaires
+
+ packet_implem.c     | 26 ++++++++++-------
+ test/format_tests.c | 84 ++++++++++++++++++++++++++++++++++++-----------------
+ 2 files changed, 74 insertions(+), 36 deletions(-)
+
+commit 3dbeb5f436ea1d0e1cdebdbdacfc8907ca19ccd8
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Sat Oct 5 01:06:33 2019 +0200
+
+    ajout tests cunit
+
+ Makefile            |   6 +-
+ headers.h           |   2 +
+ packet_implem.c     |  15 +--
+ packet_interface.h  |  12 ++
+ test/format_tests.c | 382 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ test/test.h         |  26 ++++
+ test/test_main.c    |  47 +++++++
+ 7 files changed, 476 insertions(+), 14 deletions(-)
+
+commit b86d3a03b36254d4ec596dac9873e0ff7a51a963
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Fri Oct 4 22:43:06 2019 +0200
+
+    on avance
+
+ Makefile        |  3 +++
+ packet_implem.c | 34 ++++++++++++++++++++++++++--------
+ 2 files changed, 29 insertions(+), 8 deletions(-)
+
+commit c9bd2b5c0cc321270b2df350b01df1d398c99b6d
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Thu Oct 3 17:13:48 2019 +0200
+
+    marche presque sauf le length >:c
+
+ Makefile        |   5 +-
+ packet_implem.c | 164 +++++++++++++++++++++++++++-----------------------------
+ 2 files changed, 83 insertions(+), 86 deletions(-)
+
+commit 75f0d99ebfdd776541f178caadc1261b35db49a8
+Merge: 035cd1e 6cab31a
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Wed Oct 2 17:18:45 2019 +0200
+
+    Merge branch 'master' of https://github.com/FrancoisDuchene/Supreme-UDP-Protocol-client
+
+commit 035cd1e90a1bf2d072c7e2e8dec1470346f66021
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Wed Oct 2 17:17:10 2019 +0200
+
+    wait for it
+
+ README.md       | 2 ++
+ packet_implem.c | 1 +
+ 2 files changed, 3 insertions(+)
+
+commit 6cab31a03da1142e3cd4ccb24cd3e01b666d9e51
+Author: reginsterg <guillaumereg@hotmail.fr>
+Date:   Wed Oct 2 17:15:22 2019 +0200
+
+    les fonctions varuint
+
+ packet_implem.c | 76 +++++++++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 60 insertions(+), 16 deletions(-)
+
+commit f38ba721394b92c3ffcc6b8b504713ff0b7ba346
+Author: FrancoisDuchene <duchene113@gmail.com>
+Date:   Wed Oct 2 13:58:35 2019 +0200
+
+    starters + debut tache ingi format segments
+
+ Makefile           |  19 +++
+ headers.h          |  35 +++++
+ packet_implem.c    | 401 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ packet_interface.h | 178 ++++++++++++++++++++++++
+ 4 files changed, 633 insertions(+)
+
+commit ccbb36e65b3dcf40c9b64fc99393843079850db2
+Author: Duchêne François <duchene113@gmail.com>
+Date:   Thu Sep 26 12:13:17 2019 +0200
+
+    Initial commit
+
+ README.md | 2 ++
+ 1 file changed, 2 insertions(+)

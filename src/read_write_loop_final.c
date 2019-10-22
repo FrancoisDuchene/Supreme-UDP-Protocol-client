@@ -163,8 +163,6 @@ general_status_code read_write_loop(int sfd, int fd) {
 
 				fprintf(stdout, "Reçu %zu bytes ! \t", *readLen);
 
-				//WARNING: POURQUOI FAIRE UN NEW ICI ???????
-
 				pkt_status = pkt_decode(buf,*readLen,pkt_ack);
 				if(pkt_status != 0 ) {
 					fprintf(stderr, "Erreur lors du decode de type : %u\n", pkt_status);
@@ -181,7 +179,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 
 				} else if (type == PTYPE_ACK) {
 
-					fprintf(stdout, "Ack (tr: %u, seq: %u, window: %u\n", pkt_get_tr(pkt_ack), pkt_get_seqnum(pkt_actu), pkt_get_window(pkt_actu));
+					fprintf(stdout, "Ack (tr: %u, seq: %u, window: %u\n", pkt_get_tr(pkt_ack), pkt_get_seqnum(pkt_ack), pkt_get_window(pkt_ack));
 					
 					//vérification si tr valide
 					int tr = pkt_get_tr(pkt_ack) ;
@@ -298,7 +296,6 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 		if (rettime == NULL){
 			return !OK;
 		}
-		free(rettime);
 		
 		//Si last = NULL alors que le numéro de seqnum n'a pas été trouvé, alors il y a un problème
 		if (curPktList->first == NULL){
