@@ -25,6 +25,9 @@ tests:
 	rm -f test_launch
 	gcc $(TESTFILES) $(COMMONCFILES) $(HFILES) -o test_launch -lcunit $(CFLAGS) $(OPT)
 
+checks:
+	cppcheck $(COMMONCFILES) $(HFILES)
+
 clean:
 	#rm -f packet
 	rm -f sender

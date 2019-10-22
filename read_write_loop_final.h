@@ -32,7 +32,8 @@ general_status_code read_write_loop(const int sfd, const int fd);
 /* Libère les ressources allouées. Les arguments peuvent être égal à nul.
  * Cette fonction doit être appellée avant chaque return à la fonction principale
  */
-general_status_code free_loop_res(char *buffer, pkt_t *pkt, int * curLow, int *curHi, struct pktList* curPktList);
+general_status_code free_loop_res(char *buffer, char *buffer_read, pkt_t *pkt, pkt_t *pkt2, 
+    int * curLow, int *curHi, struct pktList* curPktList, uint8_t *actual_seqnum, size_t *readLen);
 
 /* Fonction gérant la réception de acks
  * Deplace les indices de la fenêtre active en fonction du seqnum reçu

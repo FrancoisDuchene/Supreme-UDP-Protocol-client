@@ -70,10 +70,16 @@ int main (int argc, char **argv) {
 
   // Boucle du sender
 
-  read_write_loop(sockfd, fd);
+  bool failed = false;
+
+  if( read_write_loop(sockfd, fd) != OK) 
+    failed = true;
 
   // Ending - On libères les ressources
   close(fd);
   close(sockfd);
-  return EXIT_SUCCESS;
+  if(failed)
+    return EXIT_FAILURE;
+  else
+    return EXIT_SUCCESS;
 }

@@ -18,6 +18,7 @@ char * real_address(const char *address, struct sockaddr_in6 *rval) {
 	for (addr = res; addr != NULL; addr = addr->ai_next)
 		memcpy(rval, addr->ai_addr, sizeof(struct sockaddr_in6));
 
+	freeaddrinfo(res);
 	return NULL;
 }
 
