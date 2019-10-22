@@ -23,10 +23,11 @@
 /* Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
  * @sfd: The socket file descriptor. It is both bound and connected.
+ * @fd: The file descriptor on input
  * @return: as soon as stdin signals EOF, and a general_status_code indicating
  *          the success or not of the operation
  */
-general_status_code read_write_loop(const int sfd);
+general_status_code read_write_loop(const int sfd, const int fd);
 
 /* Libère les ressources allouées. Les arguments peuvent être égal à nul.
  * Cette fonction doit être appellée avant chaque return à la fonction principale

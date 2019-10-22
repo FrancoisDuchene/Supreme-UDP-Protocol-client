@@ -51,6 +51,7 @@ int main (int argc, char **argv) {
   } else {
     fd = open(file,O_RDONLY);
     if(fd == -1) {
+      fprintf(stderr, "Impossible d'ouvrir le fichier - nom incorrect\n");
       return EXIT_FAILURE;
     }
   }
@@ -69,7 +70,7 @@ int main (int argc, char **argv) {
 
   // Boucle du sender
 
-  read_write_loop(sockfd);
+  read_write_loop(sockfd, fd);
 
   // Ending - On libères les ressources
   close(fd);

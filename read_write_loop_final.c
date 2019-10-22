@@ -8,7 +8,7 @@ int nbCurPkt = 0;
  * @sfd: The socket file descriptor. It is both bound and connected.
  * @return: as soon as stdin signals EOF
  */
-general_status_code read_write_loop(int sfd) {
+general_status_code read_write_loop(int sfd, int fd) {
 
 	//La table window et ses indices
 	int * curLow = (int *) malloc(sizeof(int));
@@ -81,7 +81,7 @@ general_status_code read_write_loop(int sfd) {
 	/* Variables lié à POLL */
 	struct pollfd ufds[2];
 	// Le clavier
-	ufds[0].fd = STDIN_FILENO;
+	ufds[0].fd = fd;
 	ufds[0].events = POLLIN;
 	// Socket d'envoi
 	ufds[1].fd = sfd;
@@ -109,7 +109,7 @@ general_status_code read_write_loop(int sfd) {
 				size_t *readLen = (size_t *) malloc(sizeof(size_t));
 				if(readLen == NULL) return E_NOMEMORY;
 				
-				*readLen = read(STDIN_FILENO, buf_read, 512);
+				*readLen = read(fd, buf_read, 512);
 
 				//If end of file
 				if((ssize_t)*readLen == 0) {
@@ -118,10 +118,7 @@ general_status_code read_write_loop(int sfd) {
 					return PKT_OK;
 				}
 
-				gen_status = update_seqnum(actual_seqnum);
-				if(gen_status != OK) {
-					printf("oh mince\n");
-				}
+				fprintf(stderr, "Seqnum à envoyer %u\n", *actual_seqnum);
 				
 				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf_read, *readLen);
 
@@ -140,6 +137,10 @@ general_status_code read_write_loop(int sfd) {
 
 				*readLen = send(sfd, (void *) buf, *readLen, 0);
 				
+				gen_status = update_seqnum(actual_seqnum);
+				if(gen_status != OK) {
+					printf("oh mince\n");
+				}
 
 				nbCurPkt = nbCurPkt + 1;
 				//To do, faut aussi gérer le time et donc le réenvoi de paquets qui ont posé problème
@@ -150,7 +151,7 @@ general_status_code read_write_loop(int sfd) {
 				// On reçoit un message et on l'affiche
 				size_t readLen = recv(sfd, (void *) buf, 1024, 0);
 
-				fprintf(stderr, "Reçu %zu bytes ! \t", readLen);
+				fprintf(stdout, "Reçu %zu bytes ! \t", readLen);
 
 				pkt_actu = pkt_new();
 				if(pkt_actu == NULL){
@@ -175,6 +176,8 @@ general_status_code read_write_loop(int sfd) {
 
 				} else if (type == PTYPE_ACK) {
 
+					fprintf(stdout, "Ack (tr: %u, seq: %u, window: %u\n", pkt_get_tr(pkt_actu), pkt_get_seqnum(pkt_actu), pkt_get_window(pkt_actu));
+					
 					//vérification si tr valide
 					int tr = pkt_get_tr(pkt_actu) ;
 					if (tr == 0){
