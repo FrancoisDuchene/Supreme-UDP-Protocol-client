@@ -282,16 +282,16 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 	while(curPktList->first->currentPkt->seqnum != seqnum){
 
 		pkt_t *retval=NULL;
-		struct timespec *rettime=NULL;
+		struct timespec *rettime = NULL;
 
 		//retrait du paquet et de son timer associé de la liste
 		dequeue(curPktList,retval,rettime);
 		
-		//libération de la mémoire allouée au paquet et au timer associé
+		//libération de la mémoire allouée au paquet
 		if (retval == NULL){
 			return !OK;
 		}
-		free(retval);
+		pkt_del(retval);
 		
 		if (rettime == NULL){
 			return !OK;

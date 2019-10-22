@@ -41,7 +41,7 @@ void test_linked_enqueue() {
     CU_ASSERT_EQUAL(list->first, premier);
     CU_ASSERT_NOT_EQUAL(list->last, premier);
     CU_ASSERT_PTR_NOT_NULL(list->first->next);
-    CU_ASSERT_PTR_NULL(list->last);
+    CU_ASSERT_PTR_NULL(list->last->next);
     CU_ASSERT_PTR_NOT_NULL(list->first->next->next);
 }
 

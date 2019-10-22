@@ -29,6 +29,7 @@ void del_pktlist(pktList *list) {
         current = tmp;
     }
     free(list);
+    list = NULL;
 }
 
 void enqueue(pktList *list, pkt_t* pkt, struct timespec time) {
