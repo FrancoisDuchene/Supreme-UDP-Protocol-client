@@ -226,7 +226,7 @@ general_status_code free_loop_res(char *buffer, char *buffer_read, pkt_t *pkt, p
 			int *curHi, struct pktList* curPktList, uint8_t *actual_seqnum, size_t *readLen) {
 	if(buffer != NULL) free(buffer);
 	if(buffer_read != NULL) free(buffer_read);
-	//if(pkt != NULL) pkt_del(pkt);
+	if(pkt != NULL) pkt_del(pkt);
 	if(pkt2 != NULL) pkt_del(pkt2);
 	if(curLow != NULL) free(curLow);
 	if(curHi != NULL) free(curHi);

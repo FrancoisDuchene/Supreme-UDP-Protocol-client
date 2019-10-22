@@ -6,19 +6,11 @@ pktList* new_pktlist() {
         fprintf(stderr, "Not enough memory\n");
         return NULL;
     }
-
-    struct node* noeud = (struct node *) malloc(sizeof(struct node));
-    if(noeud == NULL) {
-        fprintf(stderr, "Not enough memory\n");
-        free(result);
-        return NULL;
-    }
-    noeud->next = NULL;
-    noeud->currentPkt = NULL;
+    
     //noeud->time = NULL;
 
-    result->first = noeud;
-    result->last = noeud;
+    result->first = NULL;
+    result->last = NULL;
 
     return result;
 }
@@ -49,8 +41,13 @@ void enqueue(pktList *list, pkt_t* pkt, struct timespec time) {
     noeud->time = time;
     noeud->next = NULL;
 
-    list->last->next = noeud;
-    list->last = noeud;
+    if(list->first == NULL) {
+        list->first = noeud;
+        list->last = noeud;
+    }else{
+        list->last->next = noeud;
+        list->last = noeud;
+    }    
 }
 
 void dequeue(pktList *list, pkt_t* retval, struct timespec *rettime) {
