@@ -172,7 +172,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 				//Verification du type de paquet 
 				if (type ==  PTYPE_DATA){
 
-					printf("Lol mais n'on est pas un receiver ici, vous êtes toctoc, fufu \n");
+					printf("Erreur, paquet de type data reçu \n");
 
 				} else if (type == PTYPE_ACK) {
 
@@ -207,7 +207,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 					}
 
 				} else {
-					printf("Ce type est inconnu au bataillon \n");
+					printf("Erreur: paquet de type inconnu reçu \n");
 				}
 
 			}
@@ -264,19 +264,22 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 		nbCurPkt = nbCurPkt -1;
 	}
 
-	struct node* actu = curPktList->last;
-	if (actu == NULL){
+	 
+	if (curPktList->first== NULL){
 		printf("Quelque chose d'incohérent s'est produit\n");
 		return  E_INCOHERENT;
 	}
 
 	//On libère tous les paquets dont le seqnum précède celui du ack reçu 
-	while(actu->currentPkt->seqnum != seqnum){
+	while(curPktList->first->currentPkt->seqnum != seqnum){
 
 		pkt_t *retval=NULL;
 		struct timespec *rettime=NULL;
+
+		//retrait du paquet et de son timer associé de la liste
 		dequeue(curPktList,retval,rettime);
 		
+		//libération de la mémoire allouée au paquet et au timer associé
 		if (retval == NULL){
 			return !OK;
 		}
@@ -287,9 +290,10 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 		}
 		free(rettime);
 		
-		actu = curPktList->last;
-		if (actu == NULL){
-			return  OK;
+		//Si last = NULL alors que le numéro de seqnum n'a pas été trouvé, alors il y a un problème
+		if (curPktList->first == NULL){
+			printf("Quelque chose d'incohérent s'est de nouveau produit\n");
+			return E_INCOHERENT;
 		}
 	}
 
@@ -310,7 +314,7 @@ general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList*
 
 		//Si le seqnum a une valeur valide
 		if (seqnum > *curLow && seqnum < *curHi) {
-			printf("Numero de seqnum valide, mais osef\n");
+			printf("Numero de seqnum valide, patientons\n");
 			int randomVal = rand() % 30;
 			sleep(1000 + randomVal);
 
@@ -325,7 +329,7 @@ general_status_code pkt_Nack(int seqnum,int * curLow,int *curHi, struct pktList*
 
 		//Si le seqnum a une valeur valide
 		if ( (seqnum > *curLow && seqnum < 256) || (seqnum < *curHi && seqnum >= 0) ) {
-			printf("Numero de seqnum valide, mais osef\n");
+			printf("Numero de seqnum valide, patientons\n");
 			int randomVal = rand() % 30;
 			sleep(1000 + randomVal);
 
