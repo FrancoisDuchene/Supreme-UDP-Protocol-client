@@ -58,15 +58,8 @@ general_status_code read_write_loop(int sfd, int fd) {
 	pkt_status_code pkt_status;
 	general_status_code gen_status;
 
-	pkt_t *pkt_actu = pkt_new();
-	if(pkt_actu == NULL) {
-		fprintf(stderr, "Erreur allocation du paquet\n");
-		free_loop_res(buf, buf_read, NULL, NULL, curLow, curHi, curPktList, NULL, NULL);
-		return E_NOMEMORY;
-	}
-
 	pkt_t *pkt_ack = pkt_new();
-	if(pkt_actu == NULL) {
+	if(pkt_ack == NULL) {
 		fprintf(stderr, "Erreur allocation du paquet\n");
 		free_loop_res(buf, buf_read, NULL, NULL, curLow, curHi, curPktList, NULL, NULL);
 		return E_NOMEMORY;
@@ -75,7 +68,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 	uint8_t *actual_seqnum = (uint8_t*) malloc(sizeof (uint8_t));
 	if(actual_seqnum == NULL) {
 		fprintf(stderr, "Erreur malloc read_write_loop\n");
-		free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow, curHi, curPktList, NULL, NULL);
+		free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, NULL, NULL);
 		return E_NOMEMORY;
 	}
 	*actual_seqnum = 0;
@@ -83,7 +76,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 	size_t *readLen = (size_t *) malloc(sizeof(size_t));
 	if(readLen == NULL) {
 		fprintf(stderr, "Erreur malloc read_write_loop\n");
-		free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
+		free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
 		return E_NOMEMORY;
 	}
 	*readLen = 0;
@@ -104,13 +97,13 @@ general_status_code read_write_loop(int sfd, int fd) {
 		if(status < 0) {
 
 			perror("An error has occured with poll\n");
-			free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow,curHi,curPktList, actual_seqnum, readLen);
+			free_loop_res(buf, buf_read, NULL, pkt_ack, curLow,curHi,curPktList, actual_seqnum, readLen);
 			return E_POLL;
 
 		} else if (status == 0) {
 
 			fprintf(stderr, "Timeout has occured ! No data transfered after %d seconds\n", TIMEOUT);
-			free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow,curHi,curPktList, actual_seqnum, readLen);
+			free_loop_res(buf, buf_read, NULL, pkt_ack, curLow,curHi,curPktList, actual_seqnum, readLen);
 			return E_TIMEOUT;
 
 		} else {
@@ -122,11 +115,18 @@ general_status_code read_write_loop(int sfd, int fd) {
 				//If end of file
 				if((ssize_t)*readLen == 0) {
 					eof_stdin = 0;
-					free_loop_res(buf, buf_read, pkt_actu, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
+					free_loop_res(buf, buf_read, NULL, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
 					return PKT_OK;
 				}
 
 				fprintf(stderr, "Seqnum à envoyer %u\n", *actual_seqnum);
+
+				pkt_t *pkt_actu = pkt_new();
+				if(pkt_actu == NULL) {
+					fprintf(stderr, "Erreur allocation du paquet\n");
+					free_loop_res(buf, buf_read, NULL, NULL, curLow, curHi, curPktList, NULL, NULL);
+					return E_NOMEMORY;
+				}
 				
 				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf_read, *readLen);
 
@@ -166,7 +166,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 				pkt_status = pkt_decode(buf,*readLen,pkt_ack);
 				if(pkt_status != 0 ) {
 					fprintf(stderr, "Erreur lors du decode de type : %u\n", pkt_status);
-					free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
+					free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
 					return E_DECODE;
 				}
 
@@ -216,7 +216,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 			}
 		}
   	}
-	free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
+	free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
 	return OK;
 }
 
@@ -224,7 +224,7 @@ general_status_code free_loop_res(char *buffer, char *buffer_read, pkt_t *pkt, p
 			int *curHi, struct pktList* curPktList, uint8_t *actual_seqnum, size_t *readLen) {
 	if(buffer != NULL) free(buffer);
 	if(buffer_read != NULL) free(buffer_read);
-	if(pkt != NULL) pkt_del(pkt);
+	//if(pkt != NULL) pkt_del(pkt);
 	if(pkt2 != NULL) pkt_del(pkt2);
 	if(curLow != NULL) free(curLow);
 	if(curHi != NULL) free(curHi);
@@ -281,16 +281,17 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 	//On libère tous les paquets dont le seqnum précède celui du ack reçu 
 	while(curPktList->first->currentPkt->seqnum != seqnum){
 
-		pkt_t *retval=NULL;
 		struct timespec *rettime = NULL;
 
 		//retrait du paquet et de son timer associé de la liste
-		dequeue(curPktList,retval,rettime);
+		pkt_t *retval = dequeue(curPktList,rettime);
 		
 		//libération de la mémoire allouée au paquet
 		if (retval == NULL){
+			printf("zut\n");
 			return !OK;
 		}
+		//TODO CETTE LIGNE FAIT DU CACA BOUDIN, À FIX PEUT-ÊTRE PLUS TARD LOL
 		pkt_del(retval);
 		
 		if (rettime == NULL){
@@ -302,7 +303,9 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 			printf("Quelque chose d'incohérent s'est de nouveau produit\n");
 			return E_INCOHERENT;
 		}
+		
 	}
+
 
 	return OK;
 }

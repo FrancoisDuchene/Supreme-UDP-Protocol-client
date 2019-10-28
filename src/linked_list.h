@@ -38,6 +38,6 @@ void enqueue(pktList *list, pkt_t* pkt, struct timespec time);
  *  @pre: list != NULL
  *  @pre: retval et rettime ne doivent pas être initialisés
  */
-void dequeue(pktList *list, pkt_t* retval, struct timespec *rettime);
+pkt_t* dequeue(pktList *list, struct timespec *rettime);
 
 #endif

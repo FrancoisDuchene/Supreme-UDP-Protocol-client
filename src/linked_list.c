@@ -52,22 +52,25 @@ void enqueue(pktList *list, pkt_t* pkt, struct timespec time) {
     }    
 }
 
-void dequeue(pktList *list, pkt_t* retval, struct timespec *rettime) {
+pkt_t* dequeue(pktList *list, struct timespec *rettime) {
     if(list == NULL) {
-        retval = NULL;
         rettime = NULL;
-        return;
+        return NULL;
     }
     struct node *noeud = list->first;
-    retval = noeud->currentPkt;
+
+    pkt_t* temp = noeud->currentPkt;
+    
     rettime = &(noeud->time);
 
     if(list->last == list->first) {
         list->first = NULL;
         list->last = NULL;
+        
     }else{
         list->first = list->first->next;
     }
     
     free(noeud);
+    return temp;
 }
