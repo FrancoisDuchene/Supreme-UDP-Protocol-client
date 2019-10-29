@@ -11,6 +11,13 @@ int nbCurPkt = 0;
  */
 general_status_code read_write_loop(int sfd, int fd) {
 
+	int timeout;
+	if(fd == STDIN_FILENO) {
+		timeout = -1;
+	}else{
+		timeout = TIMEOUT;
+	}
+
 	//La table window et ses indices
 	int * curLow = (int *) malloc(sizeof(int));
 	if (curLow == NULL){
@@ -93,7 +100,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 
 	while (eof_stdin) {
 
-		status = poll(ufds, 2, TIMEOUT);
+		status = poll(ufds, 2, timeout);
 
 		if(status < 0) {
 
@@ -139,13 +146,14 @@ general_status_code read_write_loop(int sfd, int fd) {
 				*readLen = read(fd, buf_read, 512);
 
 				//If end of file - CAS INUTILISÉ DEPUIS L'UTILISATION DU TIMEOUT
-				/*
-				if((ssize_t)*readLen == 0) {
-					eof_stdin = 0;
-					free_loop_res(buf, buf_read, NULL, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
-					return PKT_OK;
-				}
-				*/
+				
+				if(fd == STDIN_FILENO) {
+					if((ssize_t)*readLen == 0) {
+						eof_stdin = 0;
+						free_loop_res(buf, buf_read, NULL, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
+						return PKT_OK;
+					}
+				}				
 
 				fprintf(stderr, "Seqnum à envoyer %u\n", *actual_seqnum);
 
