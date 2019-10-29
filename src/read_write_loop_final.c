@@ -81,6 +81,7 @@ general_status_code read_write_loop(int sfd, int fd) {
 	}
 	*actual_seqnum = 0;
 
+	//TODO free this MEMORY LEAK AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 	size_t *readLen = (size_t *) malloc(sizeof(size_t));
 	if(readLen == NULL) {
 		fprintf(stderr, "Erreur malloc read_write_loop\n");
@@ -88,6 +89,16 @@ general_status_code read_write_loop(int sfd, int fd) {
 		return E_NOMEMORY;
 	}
 	*readLen = 0;
+
+	time_t u_time = time(NULL);	// Temps updated à chaque tour de boucle
+	size_t *pkt_size = (size_t*) malloc(sizeof(size_t)); //TODO MEMORY LEAK ATTENTIIIIIIIIIIIION
+	if(pkt_size == NULL) {
+		fprintf(stderr, "Erreur malloc read_write_loop\n");
+		free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
+		free(readLen);
+		return E_NOMEMORY;
+	}
+	*pkt_size = 0;
 
 	/* Variables lié à POLL */
 	struct pollfd ufds[2];
@@ -126,8 +137,11 @@ general_status_code read_write_loop(int sfd, int fd) {
 				// on calcule la longueur du paquet : header (type, tr, window, length, seqnum, timestamp, crc1) + payload + crc2
 				*buf_length = predict_header_length(pkt) + pkt_get_length(pkt) + 4;
 				//TODO check les erreurs
-				pkt_status = pkt_encode(pkt, buf, buf_length);
-				*buf_length = send(sfd, (void *) buf, *buf_length, 0);
+				gen_status = send_packet(sfd, pkt, buf, buf_length);
+				if(gen_status == E_ENCODE) {
+					free_loop_res(buf, buf_read, NULL, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
+					return E_ENCODE;
+				}
 				temp = temp->next;
 			}
 			free(buf_length);
@@ -145,8 +159,6 @@ general_status_code read_write_loop(int sfd, int fd) {
 				
 				*readLen = read(fd, buf_read, 512);
 
-				//If end of file - CAS INUTILISÉ DEPUIS L'UTILISATION DU TIMEOUT
-				
 				if(fd == STDIN_FILENO) {
 					if((ssize_t)*readLen == 0) {
 						eof_stdin = 0;
@@ -166,25 +178,22 @@ general_status_code read_write_loop(int sfd, int fd) {
 				
 				gen_status = long_builder_pkt(pkt_actu, PTYPE_DATA, 0, 1, *actual_seqnum, 0, buf_read, *readLen);
 
-				struct timespec curTime;
-				curTime.tv_sec = 0;
-				curTime.tv_nsec = 0;
+				// On ajoute un délai de TIMEOUT et dont le résultat final correspond à ce que l'on s'attends que cela prenne comme temps
+				time_t curTime = time(NULL) + TIMEOUT; 
 				//Ajoute le nouveau paquet créé à la liste des paquets qui n'ont pas encore été receptionnés
 				enqueue(curPktList,pkt_actu, curTime);
 
-				pkt_status = pkt_encode(pkt_actu, buf, readLen);
-				if(pkt_status != PKT_OK ) {
-					fprintf(stderr, "Erreur lors du encode de type : %u\n", pkt_status);
-					free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
+				// on encode et on envoie dans cette fonction
+				gen_status = send_packet(sfd, pkt_actu, buf, readLen);
+				if(gen_status == E_ENCODE) {
+					free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
 					return E_ENCODE;
 				}
-
-				*readLen = send(sfd, (void *) buf, *readLen, 0);
 				
 				gen_status = update_seqnum(actual_seqnum);
 				if(gen_status != OK) {
 					fprintf(stderr, "Erreur lors de la génération du numéro de séquence");
-					free_loop_res(buf, buf_read, pkt_actu, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
+					free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
 					return gen_status;
 				}
 
@@ -251,8 +260,29 @@ general_status_code read_write_loop(int sfd, int fd) {
 
 			}
 		}
+		
+		time(&u_time);	// On update le temps global
+		struct node *noeud = curPktList->first;
+		while( noeud != NULL && difftime(u_time, noeud->time) > 0 ) {
+			//TODO il ne rentre jamais ici :/
+			fprintf(stderr, "COUCOU PETITE PERRUCHE\n");
+			*pkt_size = predict_header_length(noeud->currentPkt) + pkt_get_length(noeud->currentPkt) + 4;
+			send_packet(sfd, noeud->currentPkt, buf, pkt_size);
+			noeud = noeud->next;
+		}
   	}
 	free_loop_res(buf, buf_read, NULL, pkt_ack, curLow, curHi, curPktList, actual_seqnum, readLen);
+	return OK;
+}
+
+general_status_code send_packet(int sfd, pkt_t* pkt, char *buffer, size_t *readLen) {
+	pkt_status_code pkt_status = pkt_encode(pkt, buffer, readLen);
+	if(pkt_status != PKT_OK) {
+		fprintf(stderr, "Erreur lors du encode de type : %u\n", pkt_status);
+		return E_ENCODE;
+	}
+
+	*readLen = send(sfd, (void *) buffer, *readLen, 0);
 	return OK;
 }
 
@@ -317,14 +347,13 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 	//On libère tous les paquets dont le seqnum précède celui du ack reçu 
 	while(curPktList->first->currentPkt->seqnum != seqnum){
 
-		struct timespec *rettime = NULL;
+		time_t *rettime = NULL;
 
 		//retrait du paquet et de son timer associé de la liste
 		pkt_t *retval = dequeue(curPktList,rettime);
 		
 		//libération de la mémoire allouée au paquet
 		if (retval == NULL){
-			printf("zut\n");
 			return !OK;
 		}
 		//TODO CETTE LIGNE FAIT DU CACA BOUDIN, À FIX PEUT-ÊTRE PLUS TARD LOL

@@ -14,30 +14,30 @@ typedef struct pktList {
 struct node {
     struct node* next;
     pkt_t * currentPkt;
-    struct timespec time;
+    time_t time;
 };
 
 pktList* new_pktlist();
 
-/*
+/**
  *  Libère la liste ainsi que les paquets contenus en mémoire
  *  @pre: list != NULL
  */
 void del_pktlist(pktList *list);
 
-/* 
+/** 
  *  Rajoute un élément à la queue
  *  @pre: list != NULL 
  *  @pre: pkt != NULL
  */
-void enqueue(pktList *list, pkt_t* pkt, struct timespec time);
+void enqueue(pktList *list, pkt_t* pkt, time_t time);
 
-/*
+/**
  *  Retire le premier élément de la queue et place le paquet dans retval
  *  et le time dans rettime
  *  @pre: list != NULL
  *  @pre: retval et rettime ne doivent pas être initialisés
  */
-pkt_t* dequeue(pktList *list, struct timespec *rettime);
+pkt_t* dequeue(pktList *list, time_t *rettime);
 
 #endif
