@@ -1,6 +1,7 @@
 #include "read_write_loop_final.h"
 
 
+
 int nbCurPkt = 0;
 
 /* Loop reading a socket and printing to stdout,
@@ -101,10 +102,35 @@ general_status_code read_write_loop(int sfd, int fd) {
 			return E_POLL;
 
 		} else if (status == 0) {
+			fprintf(stderr, "\tTIMEOUT\n");
+			if(curPktList->first == NULL) {
+				//Il y a eu timeout et la liste des paquets envoyés est vide => signifie que l'on a tout bien envoyé 
+				// et que tout a été reçu, on peut donc fermer la connexion
+				eof_stdin = 0;
+				free_loop_res(buf, buf_read, NULL, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
+				return OK;
+			}
+			// TIMEOUT
+			struct node *temp = curPktList->first;
+			size_t *buf_length = (size_t*) malloc(sizeof(size_t));
+			while(temp != NULL) {
+				pkt_t *pkt = temp->currentPkt;
+				if(pkt == NULL) break;
+				// on calcule la longueur du paquet : header (type, tr, window, length, seqnum, timestamp, crc1) + payload + crc2
+				*buf_length = predict_header_length(pkt) + pkt_get_length(pkt) + 4;
+				//TODO check les erreurs
+				pkt_status = pkt_encode(pkt, buf, buf_length);
+				*buf_length = send(sfd, (void *) buf, *buf_length, 0);
+				temp = temp->next;
+			}
+			free(buf_length);
 
+
+			/*
 			fprintf(stderr, "Timeout has occured ! No data transfered after %d seconds\n", TIMEOUT);
 			free_loop_res(buf, buf_read, NULL, pkt_ack, curLow,curHi,curPktList, actual_seqnum, readLen);
 			return E_TIMEOUT;
+			*/
 
 		} else {
 			if (ufds[0].revents & POLLIN && eof_stdin && nbCurPkt < curWindowSize) {
@@ -112,12 +138,14 @@ general_status_code read_write_loop(int sfd, int fd) {
 				
 				*readLen = read(fd, buf_read, 512);
 
-				//If end of file
+				//If end of file - CAS INUTILISÉ DEPUIS L'UTILISATION DU TIMEOUT
+				/*
 				if((ssize_t)*readLen == 0) {
 					eof_stdin = 0;
 					free_loop_res(buf, buf_read, NULL, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
 					return PKT_OK;
 				}
+				*/
 
 				fprintf(stderr, "Seqnum à envoyer %u\n", *actual_seqnum);
 

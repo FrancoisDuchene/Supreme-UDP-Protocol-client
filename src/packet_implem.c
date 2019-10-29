@@ -455,7 +455,7 @@ ssize_t predict_header_length(const pkt_t *pkt){
 
     uint16_t lengthActu = pkt_get_length(pkt); // récupération de la longueur du length
     if (lengthActu < 32768) {
-      return varuint_predict_len(lengthActu) + 10; // longueur du length + 10 bits du header
+      return varuint_predict_len(lengthActu) + 10; // longueur du length + 10 bytes du header
     } else {    // length non valide
       return -1;
     }
