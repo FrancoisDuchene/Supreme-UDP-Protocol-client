@@ -123,21 +123,17 @@ general_status_code read_write_loop(int sfd, int fd) {
 			}
 			// TIMEOUT
 			struct node *temp = curPktList->first;
-			size_t *buf_length = (size_t*) malloc(sizeof(size_t));
 			while(temp != NULL) {
 				pkt_t *pkt = temp->currentPkt;
 				if(pkt == NULL) break;
-				// on calcule la longueur du paquet : header (type, tr, window, length, seqnum, timestamp, crc1) + payload + crc2
-				*buf_length = predict_header_length(pkt) + pkt_get_length(pkt) + 4;
-				//TODO check les erreurs
-				gen_status = send_packet(sfd, pkt, buf, buf_length);
+				pkt_size = temp->size;
+				gen_status = send_packet(sfd, pkt, buf, &pkt_size);
 				if(gen_status == E_ENCODE) {
 					free_loop_res(buf, buf_read, pkt_ack,curLow,curHi,curPktList, actual_seqnum, readLen);
 					return E_ENCODE;
 				}
 				temp = temp->next;
 			}
-			free(buf_length);
 
 
 			/*
@@ -358,13 +354,12 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 		
 		//libération de la mémoire allouée au paquet
 		if (retval == NULL){
-			return !OK;
+			return E_PKT_QUEUE;
 		}
-		//TODO CETTE LIGNE FAIT DU CACA BOUDIN, À FIX PEUT-ÊTRE PLUS TARD LOL
 		pkt_del(retval);
 		
 		if (rettime == NULL){
-			return !OK;
+			return E_PKT_QUEUE;
 		}
 		
 		//Si last = NULL alors que le numéro de seqnum n'a pas été trouvé, alors il y a un problème
@@ -374,7 +369,6 @@ general_status_code pkt_Ack(int seqnum, int * curLow, int *curHi, struct pktList
 		}
 		
 	}
-
 
 	return OK;
 }

@@ -26,6 +26,9 @@
 #include <netdb.h>
 #include <unistd.h>
 
+#include "general.h"
+
 int main (int argc, char **argv);
+void printErrorCodeMsg(general_status_code code);
 
 #endif // SENDER_H

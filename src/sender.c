@@ -72,8 +72,10 @@ int main (int argc, char **argv) {
 
   bool failed = false;
 
-  if( read_write_loop(sockfd, fd) != OK) 
+  general_status_code prog_status = read_write_loop(sockfd, fd);
+  if( prog_status != OK) {
     failed = true;
+  }    
 
   // Ending - On libères les ressources
   close(fd);
@@ -82,4 +84,43 @@ int main (int argc, char **argv) {
     return EXIT_FAILURE;
   else
     return EXIT_SUCCESS;
+}
+
+void printErrorCodeMsg(general_status_code code) {
+  switch (code)
+  {
+  case OK:
+    fprintf(stderr, "Tout est OK - fermeture du programme\nCiao\n");
+    break;
+  case E_NOMEMORY:
+    fprintf(stderr, "Pas suffisament de mémoire pour continuer - Echec de la transmission\n");
+    break;  
+  case E_POLL:
+    fprintf(stderr, "Erreur liée à POLL - Echec de la transmission\n");
+    break;    
+  case E_TIMEOUT:
+    fprintf(stderr, "Aucune réaction de chacune des parties - Temps écoulé - Echec de la transmission\n");
+    break;
+  case E_DECODE:
+    fprintf(stderr, "Erreur lié à la procédure de décodage des données - Echec de la transmission\n");
+    break;
+  case E_ENCODE:
+    fprintf(stderr, "Erreur lié à la procédure d'encodage des données - Echec de la transmission\n");
+    break;
+  case E_SEQNUM_GEN:
+    fprintf(stderr, "Erreur lors de la génération de numéro de séquence - Echec de la transmission\n");
+    break;
+  case E_INCOHERENT:
+    fprintf(stderr, "Quelque chose d'incohérent s'est produit dans le programme - Echec de la transmission\n");
+    break;
+  case E_BUILD:
+    fprintf(stderr, "Erreur produite lors de la construction d'un nouveau paquet - Echec de la transmission\n");
+    break;
+  case E_PKT_QUEUE:
+    fprintf(stderr, "Erreur produite dans la gestion de la liste de paquets à retransmettre - Echec de la transmission\n");
+    break;
+  default:
+    fprintf(stderr, "Ce code d'erreur est inconnu au bataillon - Echec de la transmission\n");
+    break;
+  }
 }

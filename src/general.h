@@ -11,6 +11,7 @@ typedef enum {
   E_SEQNUM_GEN, // Erreur lié au seqnum du paquet
   E_INCOHERENT, // Erreur d'incohérence
   E_BUILD,    // Erreur lors de la construction du paquet
+  E_PKT_QUEUE,  // Erreur dans la file de retransmission des paquets
 } general_status_code;
 
 #endif
