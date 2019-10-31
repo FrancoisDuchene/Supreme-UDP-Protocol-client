@@ -21,6 +21,8 @@ sender:
 tests:
 	rm -f test_launch
 	gcc $(TESTFILES) $(COMMONCFILES) $(HFILES) -o test_launch -lcunit $(CFLAGS) $(OPT)
+	./test_launch
+	bash tests/black_box_tests.sh
 
 checks:
 	cppcheck $(COMMONCFILES) src/sender.c $(HFILES) src/sender.h
