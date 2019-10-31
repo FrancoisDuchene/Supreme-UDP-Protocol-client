@@ -19,6 +19,10 @@
 #include "linked_list.h"
 
 #define TIMEOUT 3000
+#define TIMER_TIMEOUT 1
+#define MAX_RESEND_TRIES 3
+#define NACK_RAND_TIMEOUT 5
+#define NACK_DEFAULT_TIMEOUT 1
 /**
  * Loop reading a socket and printing to stdout,
  * while reading stdin and writing to the socket
@@ -38,7 +42,7 @@ general_status_code send_packet(int sfd, pkt_t* pkt, char *buffer, size_t *readL
 /** Libère les ressources allouées. Les arguments peuvent être égal à nul.
  * Cette fonction doit être appellée avant chaque return à la fonction principale
  */
-general_status_code free_loop_res(char *buffer, char *buffer_read, pkt_t *pkt, pkt_t *pkt2, 
+general_status_code free_loop_res(char *buffer, char *buffer_read, pkt_t *pkt, 
     int * curLow, int *curHi, struct pktList* curPktList, uint8_t *actual_seqnum, size_t *readLen);
 
 /** Fonction gérant la réception de acks

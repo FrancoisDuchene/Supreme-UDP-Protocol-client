@@ -460,27 +460,3 @@ ssize_t predict_header_length(const pkt_t *pkt){
       return -1;
     }
 }
-//
-// int main() {
-//   pkt_t *yo = pkt_new();
-//   pkt_set_type(yo, PTYPE_DATA);
-//   pkt_set_tr(yo, 0);
-//   pkt_set_window(yo, 2);
-//   pkt_set_length(yo, 24);
-//   pkt_set_seqnum(yo, 230);
-//   pkt_set_timestamp(yo, 1010);
-//   char *buf = (char*) malloc(20);
-//   size_t ahah = 20;
-//   pkt_encode(yo,buf,&ahah);
-//   pkt_t *aie = pkt_new();
-//   pkt_decode(buf,20,aie);
-//   printf("type : %u\n", pkt_get_type(aie));
-//   printf("tr : %u\n", pkt_get_tr(aie));
-//   printf("window : %u\n", pkt_get_window(aie));
-//   printf("length : %u\n", pkt_get_length(aie));
-//   printf("seqnum : %u\n", pkt_get_seqnum(aie));
-//   printf("timestamp : %u\n", pkt_get_timestamp(aie));
-//   printf("crc1 : %u\n", pkt_get_crc1(aie));
-//   printf("crc2 : %u\n", pkt_get_crc2(aie));
-//   pkt_del(yo);
-// }

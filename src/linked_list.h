@@ -15,6 +15,7 @@ struct node {
     struct node* next;
     pkt_t * currentPkt;
     time_t time;
+    size_t size;
 };
 
 pktList* new_pktlist();
@@ -30,7 +31,7 @@ void del_pktlist(pktList *list);
  *  @pre: list != NULL 
  *  @pre: pkt != NULL
  */
-void enqueue(pktList *list, pkt_t* pkt, time_t time);
+void enqueue(pktList *list, pkt_t* pkt, time_t time, size_t size);
 
 /**
  *  Retire le premier élément de la queue et place le paquet dans retval

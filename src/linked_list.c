@@ -31,7 +31,7 @@ void del_pktlist(pktList *list) {
     list = NULL;
 }
 
-void enqueue(pktList *list, pkt_t* pkt, time_t time) {
+void enqueue(pktList *list, pkt_t* pkt, time_t time, size_t size) {
     if(list == NULL || pkt == NULL) {
         return;
     }
@@ -40,6 +40,7 @@ void enqueue(pktList *list, pkt_t* pkt, time_t time) {
 
     noeud->currentPkt = pkt;
     noeud->time = time;
+    noeud->size = size;
     noeud->next = NULL;
 
     if(list->first == NULL) {

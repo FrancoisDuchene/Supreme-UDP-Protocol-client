@@ -8,7 +8,7 @@ CFLAGS += -O2 -D_FORTIFY_SOURCE=2 # Add canary code, i.e. detect buffer overflow
 CFLAGS += -fstack-protector-all # Add canary code to detect stack smashing
 CFLAGS += -D_POSIX_C_SOURCE=201112L -D_XOPEN_SOURCE # feature_test_macros for getpot and getaddrinfo
 HFILES = src/packet_interface.h  src/general.h src/init_connexion.h src/read_write_loop_final.h src/window.h src/pkt_builder.h src/linked_list.h
-COMMONCFILES = src/packet_implem.c src/init_connexion.c src/read_write_loop_final.c src/utils.c src/window.c src/pkt_builder.c src/linked_list.c 
+COMMONCFILES = src/packet_implem.c src/init_connexion.c src/read_write_loop_final.c src/window.c src/pkt_builder.c src/linked_list.c 
 TESTFILES = tests/test_main.c tests/test.h tests/format_tests.c tests/linkedlist_tests.c
 
 .SILENT:
